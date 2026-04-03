@@ -133,3 +133,7 @@
 - [x] Admin tabs: Today, My Duties, Admin, Notify, Roster, Settings
 - [x] Remove Lunch Duty as standalone tab; lunch duties shown in Coverage Assignments on Today screen
 - [x] Remove Bulk Entry as standalone tab; accessible as hidden route (web admin only)
+
+## Web Layout
+- [x] Web: full-screen layout with top navigation bar (logo + nav links)
+- [x] Mobile: keep bottom tab bar unchanged
