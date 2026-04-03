@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { boolean, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -17,12 +17,74 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  displayName: varchar("displayName", { length: 128 }),
+  expoPushToken: varchar("expoPushToken", { length: 256 }),
+  notificationsEnabled: boolean("notificationsEnabled").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
+  passwordHash: varchar("passwordHash", { length: 128 }),
+  passwordSalt: varchar("passwordSalt", { length: 64 }),
 });
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+// ─── Absences (Out of the Building) ──────────────────────────────────────────
+export const absences = mysqlTable("absences", {
+  id: int("id").autoincrement().primaryKey(),
+  coverageDate: varchar("coverageDate", { length: 10 }).notNull(), // YYYY-MM-DD
+  staffName: varchar("staffName", { length: 128 }).notNull(),
+  timeRange: mysqlEnum("timeRange", ["all_day", "morning", "afternoon", "custom"]).default("all_day").notNull(),
+  customTimeStart: varchar("customTimeStart", { length: 16 }),
+  customTimeEnd: varchar("customTimeEnd", { length: 16 }),
+  subName: varchar("subName", { length: 128 }),
+  subStatus: mysqlEnum("subStatus", ["assigned", "no_sub", "new_sub", "split"]).default("assigned").notNull(),
+  isOAM: boolean("isOAM").default(false).notNull(),
+  absenceType: mysqlEnum("absenceType", ["sick", "personal", "educational", "other", "unknown"]).default("unknown").notNull(),
+  employeeNumber: varchar("employeeNumber", { length: 32 }),
+  subNumber: varchar("subNumber", { length: 32 }),
+  notes: text("notes"),
+  createdBy: int("createdBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Absence = typeof absences.$inferSelect;
+export type InsertAbsence = typeof absences.$inferInsert;
+
+// ─── Coverage Assignments ─────────────────────────────────────────────────────
+export const coverageAssignments = mysqlTable("coverage_assignments", {
+  id: int("id").autoincrement().primaryKey(),
+  coverageDate: varchar("coverageDate", { length: 10 }).notNull(), // YYYY-MM-DD
+  coveringStaffName: varchar("coveringStaffName", { length: 128 }).notNull(),
+  coveringFor: varchar("coveringFor", { length: 128 }).notNull(),
+  location: varchar("location", { length: 256 }),
+  coverageReason: mysqlEnum("coverageReason", ["subbing", "iep", "absent", "class_coverage", "other"]).default("subbing").notNull(),
+  timeSlot: mysqlEnum("timeSlot", ["morning_duty", "lunch_duty", "afternoon_duty", "custom", "all_day"]).default("custom").notNull(),
+  customTimeStart: varchar("customTimeStart", { length: 16 }),
+  customTimeEnd: varchar("customTimeEnd", { length: 16 }),
+  notes: text("notes"),
+  createdBy: int("createdBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CoverageAssignment = typeof coverageAssignments.$inferSelect;
+export type InsertCoverageAssignment = typeof coverageAssignments.$inferInsert;
+
+// ─── Notification Log ─────────────────────────────────────────────────────────
+export const notificationLog = mysqlTable("notification_log", {
+  id: int("id").autoincrement().primaryKey(),
+  sentBy: int("sentBy").notNull(),
+  title: varchar("title", { length: 256 }).notNull(),
+  body: text("body").notNull(),
+  recipientType: mysqlEnum("recipientType", ["all", "specific"]).default("all").notNull(),
+  recipientIds: text("recipientIds"),
+  successCount: int("successCount").default(0).notNull(),
+  failureCount: int("failureCount").default(0).notNull(),
+  sentAt: timestamp("sentAt").defaultNow().notNull(),
+});
+
+export type NotificationLog = typeof notificationLog.$inferSelect;
+export type InsertNotificationLog = typeof notificationLog.$inferInsert;

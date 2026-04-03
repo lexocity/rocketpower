@@ -9,21 +9,55 @@ type IconMapping = Record<SymbolViewProps["name"], ComponentProps<typeof Materia
 type IconSymbolName = keyof typeof MAPPING;
 
 /**
- * Add your SF Symbols to Material Icons mappings here.
- * - see Material Icons in the [Icons Directory](https://icons.expo.fyi).
- * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
+ * SF Symbols → Material Icons mappings for RocketPower
  */
 const MAPPING = {
+  // Navigation
   "house.fill": "home",
+  "person.fill": "person",
+  "shield.fill": "admin-panel-settings",
+  "gear": "settings",
+  // Actions
   "paperplane.fill": "send",
-  "chevron.left.forwardslash.chevron.right": "code",
+  "plus": "add",
+  "pencil": "edit",
+  "trash": "delete",
+  "bell.fill": "notifications",
+  "bell": "notifications-none",
+  "checkmark": "check",
+  "xmark": "close",
   "chevron.right": "chevron-right",
+  "chevron.left": "chevron-left",
+  "chevron.left.forwardslash.chevron.right": "code",
+  "arrow.left": "arrow-back",
+  "arrow.right": "arrow-forward",
+  // Coverage specific
+  "calendar": "calendar-today",
+  "person.2.fill": "group",
+  "clock": "access-time",
+  "doc.text": "description",
+  "exclamationmark.triangle": "warning",
+  "checkmark.circle.fill": "check-circle",
+  "info.circle": "info",
+  "magnifyingglass": "search",
+  "arrow.clockwise": "refresh",
+  "ellipsis": "more-horiz",
+  "square.and.arrow.up": "share",
+  // People
+  "person.3.fill": "groups",
+  "person.badge.plus": "person-add",
+  // Misc
+  "chevron.down": "expand-more",
+  "chevron.up": "expand-less",
+  "star.fill": "star",
+  "building.2": "business",
+  "list.bullet": "list",
+  "eye": "visibility",
+  "eye.slash": "visibility-off",
 } as IconMapping;
 
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
- * This ensures a consistent look across platforms, and optimal resource usage.
- * Icon `name`s are based on SF Symbols and require manual mapping to Material Icons.
  */
 export function IconSymbol({
   name,

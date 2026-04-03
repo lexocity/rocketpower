@@ -1,28 +1,210 @@
+import { z } from "zod";
 import { COOKIE_NAME } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import * as db from "./db";
 
+// ─── Shared Zod Schemas ───────────────────────────────────────────────────────────────
+const absenceSchema = z.object({
+  coverageDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  staffName: z.string().min(1).max(128),
+  timeRange: z.enum(["all_day", "morning", "afternoon", "custom"]).default("all_day"),
+  customTimeStart: z.string().max(16).optional().nullable(),
+  customTimeEnd: z.string().max(16).optional().nullable(),
+  subName: z.string().max(128).optional().nullable(),
+  subStatus: z.enum(["assigned", "no_sub", "new_sub", "split"]).default("assigned"),
+  isOAM: z.boolean().default(false),
+  absenceType: z.enum(["sick", "personal", "educational", "other", "unknown"]).default("unknown"),
+  employeeNumber: z.string().max(32).optional().nullable(),
+  subNumber: z.string().max(32).optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+const coverageSchema = z.object({
+  coverageDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  coveringStaffName: z.string().min(1).max(128),
+  coveringFor: z.string().min(1).max(128),
+  location: z.string().max(256).optional().nullable(),
+  coverageReason: z.enum(["subbing", "iep", "absent", "class_coverage", "other"]).default("subbing"),
+  timeSlot: z.enum(["morning_duty", "lunch_duty", "afternoon_duty", "custom", "all_day"]).default("custom"),
+  customTimeStart: z.string().max(16).optional().nullable(),
+  customTimeEnd: z.string().max(16).optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+// ─── App Router ───────────────────────────────────────────────────────────────────────────
 export const appRouter = router({
-  // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
+
   auth: router({
     me: publicProcedure.query((opts) => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
+      return { success: true } as const;
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  // ─── Coverage Board ─────────────────────────────────────────────────────────────────────
+  coverage: router({
+    getByDate: publicProcedure
+      .input(z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }))
+      .query(async ({ input }) => {
+        const [absenceList, coverageList] = await Promise.all([
+          db.getAbsencesByDate(input.date),
+          db.getCoverageByDate(input.date),
+        ]);
+        return { absences: absenceList, coverage: coverageList };
+      }),
+  }),
+
+  // ─── Absences (Admin) ─────────────────────────────────────────────────────────────────────
+  absences: router({
+    create: protectedProcedure
+      .input(absenceSchema)
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        return db.createAbsence({ ...input, createdBy: ctx.user.id });
+      }),
+
+    update: protectedProcedure
+      .input(z.object({ id: z.number(), data: absenceSchema.partial() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        await db.updateAbsence(input.id, input.data);
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        await db.deleteAbsence(input.id);
+        return { success: true };
+      }),
+  }),
+
+  // ─── Coverage Assignments (Admin) ─────────────────────────────────────────────────────────────────────
+  assignments: router({
+    create: protectedProcedure
+      .input(coverageSchema)
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        return db.createCoverage({ ...input, createdBy: ctx.user.id });
+      }),
+
+    update: protectedProcedure
+      .input(z.object({ id: z.number(), data: coverageSchema.partial() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        await db.updateCoverage(input.id, input.data);
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        await db.deleteCoverage(input.id);
+        return { success: true };
+      }),
+  }),
+
+  // ─── Staff / Users ───────────────────────────────────────────────────────────────────────────
+  staff: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      return db.getAllUsers();
+    }),
+
+    updatePushToken: protectedProcedure
+      .input(z.object({ token: z.string().nullable() }))
+      .mutation(async ({ ctx, input }) => {
+        await db.updateUserPushToken(ctx.user.id, input.token);
+        return { success: true };
+      }),
+  }),
+
+  // ─── Notifications (Admin) ─────────────────────────────────────────────────────────────────────
+  notifications: router({
+    send: protectedProcedure
+      .input(z.object({
+        title: z.string().min(1).max(256),
+        body: z.string().min(1),
+        recipientType: z.enum(["all", "specific"]),
+        recipientIds: z.array(z.number()).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+
+        const allUsers = await db.getUsersWithPushTokens();
+        let targets = allUsers.filter((u) => u.expoPushToken);
+
+        if (input.recipientType === "specific" && input.recipientIds?.length) {
+          targets = targets.filter((u) => input.recipientIds!.includes(u.id));
+        }
+
+        const tokens = targets.map((u) => u.expoPushToken!).filter(Boolean);
+        let successCount = 0;
+        let failureCount = 0;
+
+        if (tokens.length > 0) {
+          try {
+            const chunks = chunkArray(tokens, 100);
+            for (const chunk of chunks) {
+              const messages = chunk.map((token) => ({
+                to: token,
+                title: input.title,
+                body: input.body,
+                sound: "default",
+                data: { type: "duty_change" },
+              }));
+              const response = await fetch("https://exp.host/--/api/v2/push/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Accept: "application/json", "Accept-Encoding": "gzip, deflate" },
+                body: JSON.stringify(messages),
+              });
+              if (response.ok) {
+                const result = await response.json() as { data: Array<{ status: string }> };
+                for (const item of result.data) {
+                  if (item.status === "ok") successCount++;
+                  else failureCount++;
+                }
+              } else {
+                failureCount += chunk.length;
+              }
+            }
+          } catch (err) {
+            console.error("[Notifications] Push send error:", err);
+            failureCount = tokens.length;
+          }
+        }
+
+        await db.createNotificationLog({
+          sentBy: ctx.user.id,
+          title: input.title,
+          body: input.body,
+          recipientType: input.recipientType,
+          recipientIds: input.recipientIds ? JSON.stringify(input.recipientIds) : null,
+          successCount,
+          failureCount,
+        });
+
+        return { successCount, failureCount, totalTargets: tokens.length };
+      }),
+
+    history: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      return db.getNotificationHistory(30);
+    }),
+  }),
 });
+
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) chunks.push(arr.slice(i, i + size));
+  return chunks;
+}
 
 export type AppRouter = typeof appRouter;
