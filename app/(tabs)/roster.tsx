@@ -1,3 +1,8 @@
+/**
+ * Duty Roster Screen
+ * Three top-level sections: AM | Lunch Duty | PM
+ * Each section has Q1/Q3 and Q2/Q4 sub-tabs for the quarter pair.
+ */
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -15,8 +20,10 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { trpc } from "@/lib/trpc";
 
-type Quarter = "Q1_Q3" | "Q2_Q4" | "all";
-type TimeOfDay = "am" | "lunch" | "pm" | "all";
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type Quarter = "Q1_Q3" | "Q2_Q4";
+type Section = "am" | "lunch" | "pm";
 type DutyType = "morning_duty" | "lunch_duty" | "afternoon_duty" | "carpool" | "class_coverage" | "iep" | "other";
 
 const DUTY_TYPE_LABELS: Record<DutyType, string> = {
@@ -39,15 +46,19 @@ const DUTY_TYPE_COLORS: Record<DutyType, string> = {
   other: "#6B7280",
 };
 
-const QUARTERS: Quarter[] = ["Q1_Q3", "Q2_Q4", "all"];
-const TIME_OF_DAY_TABS: { value: TimeOfDay; label: string }[] = [
-  { value: "am", label: "AM" },
-  { value: "lunch", label: "Lunch" },
-  { value: "pm", label: "PM" },
-];
-const AM_DUTY_TYPES: DutyType[] = ["morning_duty", "carpool"];
-const LUNCH_DUTY_TYPES: DutyType[] = ["lunch_duty"];
-const PM_DUTY_TYPES: DutyType[] = ["afternoon_duty"];
+// Which duty types belong to each section
+const SECTION_DUTY_TYPES: Record<Section, DutyType[]> = {
+  am: ["morning_duty", "carpool"],
+  lunch: ["lunch_duty"],
+  pm: ["afternoon_duty"],
+};
+
+const SECTION_LABELS: Record<Section, string> = {
+  am: "AM",
+  lunch: "Lunch Duty",
+  pm: "PM",
+};
+
 const DUTY_TYPES: DutyType[] = ["morning_duty", "lunch_duty", "afternoon_duty", "carpool", "class_coverage", "iep", "other"];
 
 const emptyForm = {
@@ -58,31 +69,25 @@ const emptyForm = {
   location: "",
   timeStart: "",
   timeEnd: "",
-  quarter: "all" as Quarter,
+  quarter: "Q1_Q3" as Quarter,
   notes: "",
 };
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function RosterScreen() {
   const colors = useColors();
   const utils = trpc.useUtils();
 
-  const [selectedQuarter, setSelectedQuarter] = useState<Quarter>("Q1_Q3");
-  const [selectedTimeOfDay, setSelectedTimeOfDay] = useState<TimeOfDay>("am");
+  const [activeSection, setActiveSection] = useState<Section>("am");
+  const [activeQuarter, setActiveQuarter] = useState<Quarter>("Q1_Q3");
   const [searchStaff, setSearchStaff] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ ...emptyForm });
   const [expandedStaff, setExpandedStaff] = useState<string | null>(null);
 
-  const { data: allDuties = [], isLoading } = trpc.duties.list.useQuery({ quarter: selectedQuarter === "all" ? undefined : selectedQuarter });
-
-  // Filter by time-of-day sub-tab
-  function getTimeOfDayTypes(tod: TimeOfDay): DutyType[] | null {
-    if (tod === "am") return AM_DUTY_TYPES;
-    if (tod === "lunch") return LUNCH_DUTY_TYPES;
-    if (tod === "pm") return PM_DUTY_TYPES;
-    return null;
-  }
-  const todTypes = getTimeOfDayTypes(selectedTimeOfDay);
+  // Fetch duties for the active quarter
+  const { data: allDuties = [], isLoading } = trpc.duties.list.useQuery({ quarter: activeQuarter });
 
   const upsertMutation = trpc.duties.upsert.useMutation({
     onSuccess: () => {
@@ -104,12 +109,15 @@ export default function RosterScreen() {
     },
   });
 
-  // Group duties by staff name
+  // Filter duties by current section's duty types and search
+  const sectionDutyTypes = SECTION_DUTY_TYPES[activeSection];
   const filteredDuties = allDuties.filter((d) => {
+    const matchesSection = sectionDutyTypes.includes(d.dutyType as DutyType);
     const matchesSearch = searchStaff.trim() === "" || d.staffName.toLowerCase().includes(searchStaff.toLowerCase());
-    const matchesTod = todTypes === null || todTypes.includes(d.dutyType as DutyType);
-    return matchesSearch && matchesTod;
+    return matchesSection && matchesSearch;
   });
+
+  // Group by staff name
   const grouped = filteredDuties.reduce<Record<string, typeof allDuties>>((acc, duty) => {
     if (!acc[duty.staffName]) acc[duty.staffName] = [];
     acc[duty.staffName].push(duty);
@@ -163,52 +171,63 @@ export default function RosterScreen() {
     });
   }
 
+  // When switching sections, pre-set the form's duty type to match
+  function handleSectionChange(section: Section) {
+    setActiveSection(section);
+    setExpandedStaff(null);
+    setShowForm(false);
+    setForm((f) => ({ ...f, dutyType: SECTION_DUTY_TYPES[section][0] }));
+  }
+
   return (
     <ScreenContainer containerClassName="bg-primary">
       {/* Header */}
-      <View className="bg-primary px-4 pt-2 pb-4">
+      <View className="bg-primary px-4 pt-2 pb-3">
         <Text className="text-2xl font-bold text-white tracking-tight">Duty Roster</Text>
         <Text className="text-white/70 text-sm mt-0.5">Pre-loaded staff duties by quarter</Text>
       </View>
 
       <View className="flex-1 bg-background rounded-t-3xl -mt-3 overflow-hidden">
-        {/* Quarter Filter */}
-        <View className="px-4 pt-4 pb-2">
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View className="flex-row gap-2">
-              {(["Q1_Q3", "Q2_Q4"] as Quarter[]).map((q) => (
-                <Pressable
-                  key={q}
-                  onPress={() => setSelectedQuarter(q)}
-                  style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-                >
-                  <View className={`px-5 py-2 rounded-full border ${selectedQuarter === q ? "bg-primary border-primary" : "bg-surface border-border"}`}>
-                    <Text className={`text-sm font-bold ${selectedQuarter === q ? "text-white" : "text-muted"}`}>
-                      {q === "Q1_Q3" ? "Q1/Q3" : "Q2/Q4"}
-                    </Text>
-                  </View>
-                </Pressable>
-              ))}
-            </View>
-          </ScrollView>
-        </View>
 
-        {/* AM / Lunch / PM Sub-tabs */}
-        <View className="px-4 pb-3">
-          <View className="flex-row bg-surface rounded-xl border border-border p-1 gap-1">
-            {TIME_OF_DAY_TABS.map((tab) => (
+        {/* Top-level Section Tabs: AM | Lunch Duty | PM */}
+        <View className="px-4 pt-4 pb-2">
+          <View className="flex-row bg-surface rounded-2xl border border-border p-1 gap-1">
+            {(["am", "lunch", "pm"] as Section[]).map((section) => (
               <Pressable
-                key={tab.value}
-                onPress={() => setSelectedTimeOfDay(tab.value)}
+                key={section}
+                onPress={() => handleSectionChange(section)}
                 style={({ pressed }) => [{ flex: 1, opacity: pressed ? 0.7 : 1 }]}
               >
-                <View className={`py-2 rounded-lg items-center ${
-                  selectedTimeOfDay === tab.value ? "bg-primary" : "bg-transparent"
+                <View className={`py-2.5 rounded-xl items-center ${
+                  activeSection === section ? "bg-primary" : "bg-transparent"
                 }`}>
                   <Text className={`text-sm font-bold ${
-                    selectedTimeOfDay === tab.value ? "text-white" : "text-muted"
+                    activeSection === section ? "text-white" : "text-muted"
                   }`}>
-                    {tab.label}
+                    {SECTION_LABELS[section]}
+                  </Text>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        {/* Q1/Q3 | Q2/Q4 Sub-tabs */}
+        <View className="px-4 pb-3">
+          <View className="flex-row gap-2">
+            {(["Q1_Q3", "Q2_Q4"] as Quarter[]).map((q) => (
+              <Pressable
+                key={q}
+                onPress={() => { setActiveQuarter(q); setExpandedStaff(null); }}
+                style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+              >
+                <View className={`px-5 py-2 rounded-full border ${
+                  activeQuarter === q ? "bg-primary border-primary" : "bg-surface border-border"
+                }`}>
+                  <Text className={`text-sm font-bold ${
+                    activeQuarter === q ? "text-white" : "text-muted"
+                  }`}>
+                    {q === "Q1_Q3" ? "Q1/Q3" : "Q2/Q4"}
                   </Text>
                 </View>
               </Pressable>
@@ -239,17 +258,22 @@ export default function RosterScreen() {
         {/* Add Duty Button */}
         <View className="px-4 pb-3">
           <Pressable
-            onPress={() => { setForm({ ...emptyForm }); setShowForm(true); }}
+            onPress={() => {
+              setForm({ ...emptyForm, dutyType: SECTION_DUTY_TYPES[activeSection][0], quarter: activeQuarter });
+              setShowForm(true);
+            }}
             style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
           >
             <View className="bg-secondary rounded-xl py-3 flex-row items-center justify-center gap-2">
               <IconSymbol name="plus" size={18} color="#490E67" />
-              <Text className="text-primary font-bold">Add Duty</Text>
+              <Text className="text-primary font-bold">
+                Add {SECTION_LABELS[activeSection]} Duty ({activeQuarter === "Q1_Q3" ? "Q1/Q3" : "Q2/Q4"})
+              </Text>
             </View>
           </Pressable>
         </View>
 
-        {/* Form Modal */}
+        {/* Add/Edit Form */}
         {showForm && (
           <View className="mx-4 mb-4 bg-surface rounded-2xl border border-border p-4">
             <View className="flex-row items-center justify-between mb-3">
@@ -345,16 +369,16 @@ export default function RosterScreen() {
 
               {/* Quarter */}
               <FormField label="Quarter">
-                <View className="flex-row gap-1.5 flex-wrap">
-                  {QUARTERS.map((q) => (
+                <View className="flex-row gap-1.5">
+                  {(["Q1_Q3", "Q2_Q4"] as Quarter[]).map((q) => (
                     <Pressable
                       key={q}
                       onPress={() => setForm((f) => ({ ...f, quarter: q }))}
                       style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
                     >
-                      <View className={`px-3 py-1.5 rounded-lg border ${form.quarter === q ? "border-primary bg-primary/10" : "border-border bg-background"}`}>
-                        <Text className={`text-xs font-semibold ${form.quarter === q ? "text-primary" : "text-muted"}`}>
-                          {q === "all" ? "Every Quarter" : q === "Q1_Q3" ? "Q1/Q3" : "Q2/Q4"}
+                      <View className={`px-4 py-2 rounded-lg border ${form.quarter === q ? "border-primary bg-primary/10" : "border-border bg-background"}`}>
+                        <Text className={`text-sm font-bold ${form.quarter === q ? "text-primary" : "text-muted"}`}>
+                          {q === "Q1_Q3" ? "Q1/Q3" : "Q2/Q4"}
                         </Text>
                       </View>
                     </Pressable>
@@ -410,9 +434,11 @@ export default function RosterScreen() {
         ) : staffNames.length === 0 ? (
           <View className="flex-1 items-center justify-center px-8">
             <Text className="text-5xl mb-4">📋</Text>
-            <Text className="text-lg font-bold text-foreground mb-2 text-center">No Duties Pre-loaded</Text>
+            <Text className="text-lg font-bold text-foreground mb-2 text-center">
+              No {SECTION_LABELS[activeSection]} Duties
+            </Text>
             <Text className="text-muted text-sm text-center">
-              Tap "Add Duty" to start building your staff duty roster. Once added, duties will auto-fill when creating coverage assignments.
+              Tap "Add {SECTION_LABELS[activeSection]} Duty" to pre-load duties for {activeQuarter === "Q1_Q3" ? "Q1/Q3" : "Q2/Q4"}.
             </Text>
           </View>
         ) : (
@@ -442,7 +468,10 @@ export default function RosterScreen() {
                       </View>
                       <View className="flex-row items-center gap-2">
                         <Pressable
-                          onPress={() => { setForm({ ...emptyForm, staffName }); setShowForm(true); }}
+                          onPress={() => {
+                            setForm({ ...emptyForm, staffName, dutyType: SECTION_DUTY_TYPES[activeSection][0], quarter: activeQuarter });
+                            setShowForm(true);
+                          }}
                           style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
                         >
                           <View className="bg-primary/10 rounded-lg px-2 py-1">
@@ -459,12 +488,12 @@ export default function RosterScreen() {
                   </Pressable>
 
                   {/* Duty Items */}
-                  {isExpanded && duties.map((duty, idx) => (
+                  {isExpanded && duties.map((duty) => (
                     <View key={duty.id}>
                       <View className="h-px bg-border" />
                       <View className="px-4 py-3 flex-row items-start gap-3">
                         <View
-                          className="w-2 h-2 rounded-full mt-1.5"
+                          className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
                           style={{ backgroundColor: DUTY_TYPE_COLORS[duty.dutyType as DutyType] }}
                         />
                         <View className="flex-1">
@@ -472,8 +501,10 @@ export default function RosterScreen() {
                             <Text className="font-semibold text-foreground text-sm">
                               {duty.dutyLabel || DUTY_TYPE_LABELS[duty.dutyType as DutyType]}
                             </Text>
-                            <View className="bg-surface border border-border rounded-full px-2 py-0.5">
-                              <Text className="text-muted text-xs">{duty.quarter === "all" ? "Every Qtr" : duty.quarter === "Q1_Q3" ? "Q1/Q3" : "Q2/Q4"}</Text>
+                            <View className="bg-background border border-border rounded-full px-2 py-0.5">
+                              <Text className="text-muted text-xs">
+                                {duty.quarter === "Q1_Q3" ? "Q1/Q3" : "Q2/Q4"}
+                              </Text>
                             </View>
                           </View>
                           {duty.location && (
@@ -519,10 +550,12 @@ export default function RosterScreen() {
   );
 }
 
+// ─── Helper Components ────────────────────────────────────────────────────────
+
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View className="mb-3">
-      <Text className="text-xs font-semibold text-muted mb-1 uppercase tracking-wide">{label}</Text>
+      <Text className="text-xs font-semibold text-muted uppercase tracking-wide mb-1.5">{label}</Text>
       {children}
     </View>
   );

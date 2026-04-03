@@ -126,3 +126,4 @@
 - [x] Lunch Duty screen: search bar filtering by staff name AND duty/location
 - [x] Roster screen: AM/Lunch/PM sub-tabs within Q1/Q3 and Q2/Q4 quarter tabs
 - [x] Roster screen: 3 sub-tabs (AM / Lunch / PM) within each Q1/Q3 and Q2/Q4 quarter — AM=morning+carpool, Lunch=lunch duties, PM=afternoon duties
+- [x] Bulk Entry tab: hide on mobile (iOS/Android), show only on web

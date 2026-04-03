@@ -91,9 +91,9 @@ export default function TabLayout() {
         options={{
           title: "Bulk Entry",
           tabBarIcon: ({ color }) => <IconSymbol size={26} name="table.fill" color={color} />,
-          // Web-only admin tab for spreadsheet-style data entry
-          tabBarItemStyle: isAdmin ? undefined : { display: "none" },
-          href: isAdmin ? undefined : null,
+          // Web-only admin tab: hidden on mobile and for non-admins
+          tabBarItemStyle: isAdmin && Platform.OS === "web" ? undefined : { display: "none" },
+          href: isAdmin && Platform.OS === "web" ? undefined : null,
         }}
       />
       <Tabs.Screen
