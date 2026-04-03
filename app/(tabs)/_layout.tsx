@@ -37,6 +37,7 @@ export default function TabLayout() {
         },
       }}
     >
+      {/* ── Shared tabs (all users) ── */}
       <Tabs.Screen
         name="index"
         options={{
@@ -51,19 +52,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={26} name="person.fill" color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="lunch-duty"
-        options={{
-          title: "LUNCH DUTY",
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="clock" color={color} />,
-        }}
-      />
+
+      {/* ── Admin-only tabs ── */}
       <Tabs.Screen
         name="admin"
         options={{
           title: "Admin",
           tabBarIcon: ({ color }) => <IconSymbol size={26} name="shield.fill" color={color} />,
-          // Hide admin tab for non-admin users
           tabBarItemStyle: isAdmin ? undefined : { display: "none" },
           href: isAdmin ? undefined : null,
         }}
@@ -86,21 +81,29 @@ export default function TabLayout() {
           href: isAdmin ? undefined : null,
         }}
       />
-      <Tabs.Screen
-        name="bulk-entry"
-        options={{
-          title: "Bulk Entry",
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="table.fill" color={color} />,
-          // Web-only admin tab: hidden on mobile and for non-admins
-          tabBarItemStyle: isAdmin && Platform.OS === "web" ? undefined : { display: "none" },
-          href: isAdmin && Platform.OS === "web" ? undefined : null,
-        }}
-      />
+
+      {/* ── Settings (all users, always last) ── */}
       <Tabs.Screen
         name="settings"
         options={{
           title: "Settings",
           tabBarIcon: ({ color }) => <IconSymbol size={26} name="gear" color={color} />,
+        }}
+      />
+
+      {/* ── Hidden screens (no tab shown) ── */}
+      <Tabs.Screen
+        name="lunch-duty"
+        options={{
+          href: null,
+          tabBarItemStyle: { display: "none" },
+        }}
+      />
+      <Tabs.Screen
+        name="bulk-entry"
+        options={{
+          href: null,
+          tabBarItemStyle: { display: "none" },
         }}
       />
     </Tabs>

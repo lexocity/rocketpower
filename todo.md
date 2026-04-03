@@ -127,3 +127,9 @@
 - [x] Roster screen: AM/Lunch/PM sub-tabs within Q1/Q3 and Q2/Q4 quarter tabs
 - [x] Roster screen: 3 sub-tabs (AM / Lunch / PM) within each Q1/Q3 and Q2/Q4 quarter — AM=morning+carpool, Lunch=lunch duties, PM=afternoon duties
 - [x] Bulk Entry tab: hide on mobile (iOS/Android), show only on web
+
+## Navigation Restructure
+- [x] Staff tabs: Today, My Duties, Settings only
+- [x] Admin tabs: Today, My Duties, Admin, Notify, Roster, Settings
+- [x] Remove Lunch Duty as standalone tab; lunch duties shown in Coverage Assignments on Today screen
+- [x] Remove Bulk Entry as standalone tab; accessible as hidden route (web admin only)
