@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { WebTopNav } from "@/components/web-top-nav";
+import { AuthGate } from "@/components/auth-gate";
 import { useColors } from "@/hooks/use-colors";
 import { trpc } from "@/lib/trpc";
 
@@ -20,6 +21,7 @@ export default function TabLayout() {
   const tabBarHeight = isWeb ? 0 : 56 + bottomPadding;
 
   return (
+    <AuthGate>
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Web-only top navigation bar */}
       {isWeb && <WebTopNav />}
@@ -118,5 +120,6 @@ export default function TabLayout() {
         />
       </Tabs>
     </View>
+    </AuthGate>
   );
 }

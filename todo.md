@@ -137,3 +137,8 @@
 ## Web Layout
 - [x] Web: full-screen layout with top navigation bar (logo + nav links)
 - [x] Mobile: keep bottom tab bar unchanged
+
+## Auth Gate
+- [x] Branded login/register landing page (shown to unauthenticated users)
+- [x] Redirect all content screens to landing page if not logged in
+- [x] Landing page: login form + register form toggle, Rogers Lane branding
