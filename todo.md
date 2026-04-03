@@ -97,3 +97,14 @@
 - [ ] tRPC route: get receipts for a notification (admin only)
 - [ ] Notify screen: expandable detail view per notification showing per-staff opened/delivered/no-token status
 - [ ] App: listen for notification tap and record read receipt
+
+## Staff Duty Roster (Pre-loaded Duties)
+- [- [x] staff_duties table (staffName, dutyType, dutyLabel, timeStart, timeEnd, quarter, notes)
+- [x] tRPC routes: list duties by staff name, upsert duty, delete duty
+- [x] Admin: Duty Roster screen — view/add/edit/delete duties per staff member
+- [x] Quarter selector (Q1/Q2/Q3/Q4) on roster screen
+- [ ] Auto-fill duties when selecting "Covering For" staff in coverage assignment form
+- [ ] Staff can view their own pre-loaded duties on My Duties screen
+
+## UI Cleanup
+- [x] Remove OAM, employee number, and sub number from Today tab (staff-facing view)

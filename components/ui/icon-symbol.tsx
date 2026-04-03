@@ -54,6 +54,8 @@ const MAPPING = {
   "list.bullet": "list",
   "eye": "visibility",
   "eye.slash": "visibility-off",
+  "list.bullet.clipboard.fill": "assignment",
+  "xmark.circle.fill": "cancel",
 } as IconMapping;
 
 /**

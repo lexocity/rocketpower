@@ -112,3 +112,30 @@ export const notificationReceipts = mysqlTable("notification_receipts", {
 
 export type NotificationReceipt = typeof notificationReceipts.$inferSelect;
 export type InsertNotificationReceipt = typeof notificationReceipts.$inferInsert;
+
+// ─── Staff Duty Roster (pre-loaded regular duties per staff member) ───────────
+export const staffDuties = mysqlTable("staff_duties", {
+  id: int("id").autoincrement().primaryKey(),
+  staffName: varchar("staffName", { length: 128 }).notNull(),
+  dutyType: mysqlEnum("dutyType", [
+    "morning_duty",
+    "lunch_duty",
+    "afternoon_duty",
+    "carpool",
+    "class_coverage",
+    "iep",
+    "other",
+  ]).notNull(),
+  dutyLabel: varchar("dutyLabel", { length: 256 }), // e.g. "Carpool Purple", "Lunch Duty 11:10–11:35"
+  location: varchar("location", { length: 256 }),   // e.g. "Carpool Purple", "Daughenbaugh Purple"
+  timeStart: varchar("timeStart", { length: 16 }),  // e.g. "11:10"
+  timeEnd: varchar("timeEnd", { length: 16 }),      // e.g. "11:35"
+  quarter: mysqlEnum("quarter", ["Q1", "Q2", "Q3", "Q4", "all"]).default("all").notNull(),
+  notes: text("notes"),
+  createdBy: int("createdBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type StaffDuty = typeof staffDuties.$inferSelect;
+export type InsertStaffDuty = typeof staffDuties.$inferInsert;

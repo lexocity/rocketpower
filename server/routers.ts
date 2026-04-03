@@ -248,6 +248,52 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+
+  // ─── Staff Duty Roster ─────────────────────────────────────────────────────────────────────
+  duties: router({
+    // List all duties, optionally filtered by staff name and/or quarter
+    list: publicProcedure
+      .input(z.object({
+        staffName: z.string().optional(),
+        quarter: z.enum(["Q1", "Q2", "Q3", "Q4", "all"]).optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return db.getStaffDuties(input?.staffName, input?.quarter);
+      }),
+
+    // List all unique staff names that have duties pre-loaded
+    staffNames: publicProcedure.query(async () => {
+      return db.getAllStaffDutyNames();
+    }),
+
+    // Create or update a duty entry (admin only)
+    upsert: protectedProcedure
+      .input(z.object({
+        id: z.number().optional(),
+        staffName: z.string().min(1).max(128),
+        dutyType: z.enum(["morning_duty", "lunch_duty", "afternoon_duty", "carpool", "class_coverage", "iep", "other"]),
+        dutyLabel: z.string().max(256).optional().nullable(),
+        location: z.string().max(256).optional().nullable(),
+        timeStart: z.string().max(16).optional().nullable(),
+        timeEnd: z.string().max(16).optional().nullable(),
+        quarter: z.enum(["Q1", "Q2", "Q3", "Q4", "all"]).default("all"),
+        notes: z.string().optional().nullable(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        await db.upsertStaffDuty({ ...input, createdBy: ctx.user.id });
+        return { success: true };
+      }),
+
+    // Delete a duty entry (admin only)
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        await db.deleteStaffDuty(input.id);
+        return { success: true };
+      }),
+  }),
 });
 
 function chunkArray<T>(arr: T[], size: number): T[][] {

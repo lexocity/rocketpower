@@ -163,12 +163,7 @@ function AbsenceCard({ absence }: { absence: Absence }) {
           {subDisplay ? (
             <Text className="text-muted text-sm mt-0.5">Sub: {subDisplay}</Text>
           ) : null}
-          {absence.employeeNumber ? (
-            <Text className="text-muted text-xs mt-0.5">
-              Emp #{absence.employeeNumber}
-              {absence.subNumber ? `  ·  Sub #{absence.subNumber}` : ""}
-            </Text>
-          ) : null}
+
         </View>
         <View className="items-end gap-1.5">
           <TimeRangeBadge
@@ -179,11 +174,7 @@ function AbsenceCard({ absence }: { absence: Absence }) {
           {absence.absenceType !== "unknown" && (
             <AbsenceTypeBadge type={absence.absenceType} />
           )}
-          {absence.isOAM && (
-            <View className="bg-secondary/30 rounded-full px-2 py-0.5">
-              <Text className="text-xs font-semibold text-foreground">OAM</Text>
-            </View>
-          )}
+
         </View>
       </View>
       {absence.notes ? (

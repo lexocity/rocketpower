@@ -6,10 +6,12 @@ import {
   InsertAbsence,
   InsertCoverageAssignment,
   InsertNotificationLog,
+  InsertStaffDuty,
   InsertUser,
   notificationLog,
   notificationRecipients,
   notificationReceipts,
+  staffDuties,
   users,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -256,6 +258,46 @@ export async function getNotificationRecipients(notificationId: number) {
 }
 
 // ─── Notification Receipts (read tracking) ──────────────────────────────
+// ─── Staff Duty Roster ────────────────────────────────────────────────────────────────────
+export async function getStaffDuties(staffName?: string, quarter?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = [];
+  if (staffName) conditions.push(eq(staffDuties.staffName, staffName));
+  if (quarter && quarter !== "all") {
+    // Return duties that match the quarter OR are marked "all"
+    const { or } = await import("drizzle-orm");
+    conditions.push(or(eq(staffDuties.quarter, quarter as any), eq(staffDuties.quarter, "all")));
+  }
+  return conditions.length > 0
+    ? db.select().from(staffDuties).where(conditions.length === 1 ? conditions[0] : (await import("drizzle-orm")).and(...conditions)).orderBy(staffDuties.staffName)
+    : db.select().from(staffDuties).orderBy(staffDuties.staffName);
+}
+
+export async function getAllStaffDutyNames() {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.selectDistinct({ staffName: staffDuties.staffName }).from(staffDuties).orderBy(staffDuties.staffName);
+  return rows.map((r) => r.staffName);
+}
+
+export async function upsertStaffDuty(data: InsertStaffDuty & { id?: number }) {
+  const db = await getDb();
+  if (!db) return;
+  if (data.id) {
+    const { id, ...rest } = data;
+    await db.update(staffDuties).set(rest).where(eq(staffDuties.id, id));
+  } else {
+    await db.insert(staffDuties).values(data);
+  }
+}
+
+export async function deleteStaffDuty(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(staffDuties).where(eq(staffDuties.id, id));
+}
+
 export async function recordNotificationOpen(notificationId: number, userId: number) {
   const db = await getDb();
   if (!db) return;

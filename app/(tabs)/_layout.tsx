@@ -71,6 +71,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="roster"
+        options={{
+          title: "Roster",
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="list.bullet.clipboard.fill" color={color} />,
+          tabBarItemStyle: isAdmin ? undefined : { display: "none" },
+          href: isAdmin ? undefined : null,
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: "Settings",

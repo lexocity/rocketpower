@@ -36,6 +36,13 @@
       "when": 1775179644163,
       "tag": "0004_first_darkstar",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1775180233711,
+      "tag": "0005_heavy_wild_child",
+      "breakpoints": true
     }
   ]
 }
