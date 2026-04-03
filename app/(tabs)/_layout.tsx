@@ -52,6 +52,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="lunch-duty"
+        options={{
+          title: "LUNCH DUTY",
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="clock" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="admin"
         options={{
           title: "Admin",
@@ -75,6 +82,16 @@ export default function TabLayout() {
         options={{
           title: "Roster",
           tabBarIcon: ({ color }) => <IconSymbol size={26} name="list.bullet.clipboard.fill" color={color} />,
+          tabBarItemStyle: isAdmin ? undefined : { display: "none" },
+          href: isAdmin ? undefined : null,
+        }}
+      />
+      <Tabs.Screen
+        name="bulk-entry"
+        options={{
+          title: "Bulk Entry",
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="table.fill" color={color} />,
+          // Web-only admin tab for spreadsheet-style data entry
           tabBarItemStyle: isAdmin ? undefined : { display: "none" },
           href: isAdmin ? undefined : null,
         }}

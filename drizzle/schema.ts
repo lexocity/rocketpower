@@ -130,7 +130,7 @@ export const staffDuties = mysqlTable("staff_duties", {
   location: varchar("location", { length: 256 }),   // e.g. "Carpool Purple", "Daughenbaugh Purple"
   timeStart: varchar("timeStart", { length: 16 }),  // e.g. "11:10"
   timeEnd: varchar("timeEnd", { length: 16 }),      // e.g. "11:35"
-  quarter: mysqlEnum("quarter", ["Q1", "Q2", "Q3", "Q4", "all"]).default("all").notNull(),
+  quarter: mysqlEnum("quarter", ["Q1_Q3", "Q2_Q4", "all"]).default("all").notNull(),
   notes: text("notes"),
   createdBy: int("createdBy"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

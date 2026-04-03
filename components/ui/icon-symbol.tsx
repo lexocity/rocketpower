@@ -56,6 +56,7 @@ const MAPPING = {
   "eye.slash": "visibility-off",
   "list.bullet.clipboard.fill": "assignment",
   "xmark.circle.fill": "cancel",
+  "table.fill": "table-chart",
 } as IconMapping;
 
 /**

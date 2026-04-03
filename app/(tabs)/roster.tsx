@@ -15,7 +15,8 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { trpc } from "@/lib/trpc";
 
-type Quarter = "Q1" | "Q2" | "Q3" | "Q4" | "all";
+type Quarter = "Q1_Q3" | "Q2_Q4" | "all";
+type TimeOfDay = "am" | "lunch" | "pm" | "all";
 type DutyType = "morning_duty" | "lunch_duty" | "afternoon_duty" | "carpool" | "class_coverage" | "iep" | "other";
 
 const DUTY_TYPE_LABELS: Record<DutyType, string> = {
@@ -38,7 +39,15 @@ const DUTY_TYPE_COLORS: Record<DutyType, string> = {
   other: "#6B7280",
 };
 
-const QUARTERS: Quarter[] = ["Q1", "Q2", "Q3", "Q4", "all"];
+const QUARTERS: Quarter[] = ["Q1_Q3", "Q2_Q4", "all"];
+const TIME_OF_DAY_TABS: { value: TimeOfDay; label: string }[] = [
+  { value: "am", label: "AM" },
+  { value: "lunch", label: "Lunch" },
+  { value: "pm", label: "PM" },
+];
+const AM_DUTY_TYPES: DutyType[] = ["morning_duty", "carpool"];
+const LUNCH_DUTY_TYPES: DutyType[] = ["lunch_duty"];
+const PM_DUTY_TYPES: DutyType[] = ["afternoon_duty"];
 const DUTY_TYPES: DutyType[] = ["morning_duty", "lunch_duty", "afternoon_duty", "carpool", "class_coverage", "iep", "other"];
 
 const emptyForm = {
@@ -57,13 +66,23 @@ export default function RosterScreen() {
   const colors = useColors();
   const utils = trpc.useUtils();
 
-  const [selectedQuarter, setSelectedQuarter] = useState<Quarter>("all");
+  const [selectedQuarter, setSelectedQuarter] = useState<Quarter>("Q1_Q3");
+  const [selectedTimeOfDay, setSelectedTimeOfDay] = useState<TimeOfDay>("am");
   const [searchStaff, setSearchStaff] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ ...emptyForm });
   const [expandedStaff, setExpandedStaff] = useState<string | null>(null);
 
-  const { data: allDuties = [], isLoading } = trpc.duties.list.useQuery({ quarter: selectedQuarter });
+  const { data: allDuties = [], isLoading } = trpc.duties.list.useQuery({ quarter: selectedQuarter === "all" ? undefined : selectedQuarter });
+
+  // Filter by time-of-day sub-tab
+  function getTimeOfDayTypes(tod: TimeOfDay): DutyType[] | null {
+    if (tod === "am") return AM_DUTY_TYPES;
+    if (tod === "lunch") return LUNCH_DUTY_TYPES;
+    if (tod === "pm") return PM_DUTY_TYPES;
+    return null;
+  }
+  const todTypes = getTimeOfDayTypes(selectedTimeOfDay);
 
   const upsertMutation = trpc.duties.upsert.useMutation({
     onSuccess: () => {
@@ -86,9 +105,11 @@ export default function RosterScreen() {
   });
 
   // Group duties by staff name
-  const filteredDuties = allDuties.filter((d) =>
-    searchStaff.trim() === "" || d.staffName.toLowerCase().includes(searchStaff.toLowerCase())
-  );
+  const filteredDuties = allDuties.filter((d) => {
+    const matchesSearch = searchStaff.trim() === "" || d.staffName.toLowerCase().includes(searchStaff.toLowerCase());
+    const matchesTod = todTypes === null || todTypes.includes(d.dutyType as DutyType);
+    return matchesSearch && matchesTod;
+  });
   const grouped = filteredDuties.reduce<Record<string, typeof allDuties>>((acc, duty) => {
     if (!acc[duty.staffName]) acc[duty.staffName] = [];
     acc[duty.staffName].push(duty);
@@ -155,21 +176,44 @@ export default function RosterScreen() {
         <View className="px-4 pt-4 pb-2">
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View className="flex-row gap-2">
-              {QUARTERS.map((q) => (
+              {(["Q1_Q3", "Q2_Q4"] as Quarter[]).map((q) => (
                 <Pressable
                   key={q}
                   onPress={() => setSelectedQuarter(q)}
                   style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
                 >
-                  <View className={`px-4 py-2 rounded-full border ${selectedQuarter === q ? "bg-primary border-primary" : "bg-surface border-border"}`}>
-                    <Text className={`text-sm font-semibold ${selectedQuarter === q ? "text-white" : "text-muted"}`}>
-                      {q === "all" ? "All Quarters" : q}
+                  <View className={`px-5 py-2 rounded-full border ${selectedQuarter === q ? "bg-primary border-primary" : "bg-surface border-border"}`}>
+                    <Text className={`text-sm font-bold ${selectedQuarter === q ? "text-white" : "text-muted"}`}>
+                      {q === "Q1_Q3" ? "Q1/Q3" : "Q2/Q4"}
                     </Text>
                   </View>
                 </Pressable>
               ))}
             </View>
           </ScrollView>
+        </View>
+
+        {/* AM / Lunch / PM Sub-tabs */}
+        <View className="px-4 pb-3">
+          <View className="flex-row bg-surface rounded-xl border border-border p-1 gap-1">
+            {TIME_OF_DAY_TABS.map((tab) => (
+              <Pressable
+                key={tab.value}
+                onPress={() => setSelectedTimeOfDay(tab.value)}
+                style={({ pressed }) => [{ flex: 1, opacity: pressed ? 0.7 : 1 }]}
+              >
+                <View className={`py-2 rounded-lg items-center ${
+                  selectedTimeOfDay === tab.value ? "bg-primary" : "bg-transparent"
+                }`}>
+                  <Text className={`text-sm font-bold ${
+                    selectedTimeOfDay === tab.value ? "text-white" : "text-muted"
+                  }`}>
+                    {tab.label}
+                  </Text>
+                </View>
+              </Pressable>
+            ))}
+          </View>
         </View>
 
         {/* Search */}
@@ -310,7 +354,7 @@ export default function RosterScreen() {
                     >
                       <View className={`px-3 py-1.5 rounded-lg border ${form.quarter === q ? "border-primary bg-primary/10" : "border-border bg-background"}`}>
                         <Text className={`text-xs font-semibold ${form.quarter === q ? "text-primary" : "text-muted"}`}>
-                          {q === "all" ? "Every Quarter" : q}
+                          {q === "all" ? "Every Quarter" : q === "Q1_Q3" ? "Q1/Q3" : "Q2/Q4"}
                         </Text>
                       </View>
                     </Pressable>
@@ -429,7 +473,7 @@ export default function RosterScreen() {
                               {duty.dutyLabel || DUTY_TYPE_LABELS[duty.dutyType as DutyType]}
                             </Text>
                             <View className="bg-surface border border-border rounded-full px-2 py-0.5">
-                              <Text className="text-muted text-xs">{duty.quarter === "all" ? "Every Qtr" : duty.quarter}</Text>
+                              <Text className="text-muted text-xs">{duty.quarter === "all" ? "Every Qtr" : duty.quarter === "Q1_Q3" ? "Q1/Q3" : "Q2/Q4"}</Text>
                             </View>
                           </View>
                           {duty.location && (

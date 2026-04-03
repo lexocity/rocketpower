@@ -1,0 +1,1 @@
+ALTER TABLE `staff_duties` MODIFY COLUMN `quarter` enum('Q1_Q3','Q2_Q4','all') NOT NULL DEFAULT 'all';

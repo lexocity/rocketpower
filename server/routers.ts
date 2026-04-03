@@ -83,6 +83,18 @@ export const appRouter = router({
         await db.deleteAbsence(input.id);
         return { success: true };
       }),
+
+    // Bulk save: replaces all absences for a given date with the provided list
+    bulkSave: protectedProcedure
+      .input(z.object({
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        rows: z.array(absenceSchema),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        await db.bulkReplaceAbsences(input.date, input.rows.map(r => ({ ...r, createdBy: ctx.user.id })));
+        return { success: true };
+      }),
   }),
 
   // ─── Coverage Assignments (Admin) ─────────────────────────────────────────────────────────────────────
@@ -107,6 +119,18 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         if (ctx.user.role !== "admin") throw new Error("Unauthorized");
         await db.deleteCoverage(input.id);
+        return { success: true };
+      }),
+
+    // Bulk save: replaces all coverage assignments for a given date
+    bulkSave: protectedProcedure
+      .input(z.object({
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        rows: z.array(coverageSchema),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        await db.bulkReplaceCoverage(input.date, input.rows.map(r => ({ ...r, createdBy: ctx.user.id })));
         return { success: true };
       }),
   }),
@@ -255,7 +279,7 @@ export const appRouter = router({
     list: publicProcedure
       .input(z.object({
         staffName: z.string().optional(),
-        quarter: z.enum(["Q1", "Q2", "Q3", "Q4", "all"]).optional(),
+        quarter: z.enum(["Q1_Q3", "Q2_Q4", "all"]).optional(),
       }).optional())
       .query(async ({ input }) => {
         return db.getStaffDuties(input?.staffName, input?.quarter);
@@ -276,7 +300,7 @@ export const appRouter = router({
         location: z.string().max(256).optional().nullable(),
         timeStart: z.string().max(16).optional().nullable(),
         timeEnd: z.string().max(16).optional().nullable(),
-        quarter: z.enum(["Q1", "Q2", "Q3", "Q4", "all"]).default("all"),
+        quarter: z.enum(["Q1_Q3", "Q2_Q4", "all"]).default("all"),
         notes: z.string().optional().nullable(),
       }))
       .mutation(async ({ ctx, input }) => {

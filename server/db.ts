@@ -258,6 +258,26 @@ export async function getNotificationRecipients(notificationId: number) {
 }
 
 // ─── Notification Receipts (read tracking) ──────────────────────────────
+// ─── Bulk Operations ─────────────────────────────────────────────────────────
+export async function bulkReplaceAbsences(date: string, rows: InsertAbsence[]) {
+  const db = await getDb();
+  if (!db) return;
+  // Delete all existing absences for the date, then insert the new rows
+  await db.delete(absences).where(eq(absences.coverageDate, date));
+  if (rows.length > 0) {
+    await db.insert(absences).values(rows);
+  }
+}
+
+export async function bulkReplaceCoverage(date: string, rows: InsertCoverageAssignment[]) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(coverageAssignments).where(eq(coverageAssignments.coverageDate, date));
+  if (rows.length > 0) {
+    await db.insert(coverageAssignments).values(rows);
+  }
+}
+
 // ─── Staff Duty Roster ────────────────────────────────────────────────────────────────────
 export async function getStaffDuties(staffName?: string, quarter?: string) {
   const db = await getDb();

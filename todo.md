@@ -108,3 +108,21 @@
 
 ## UI Cleanup
 - [x] Remove OAM, employee number, and sub number from Today tab (staff-facing view)
+
+## Web Bulk Entry (Spreadsheet-Style)
+- [x] Web-only bulk absence entry grid (spreadsheet with dropdowns, add/remove rows, save all)
+- [x] Web-only bulk coverage assignment entry grid (spreadsheet with dropdowns, add/remove rows, save all)
+- [x] Auto-fill coverage duties from roster when staff name is entered in bulk grid
+- [x] Bulk entry accessible from Admin tab on web
+
+## Quarter System Update
+- [x] Change quarter enum from Q1/Q2/Q3/Q4 to Q1_Q3 / Q2_Q4 / all
+- [x] Update schema, routers, roster screen, and bulk entry filter
+
+## Lunch Duty Tab
+- [x] Dedicated "Lunch Duty" tab showing all lunch_duty coverage assignments for the selected date
+- [x] Date navigator on Lunch Duty screen
+- [x] Add Lunch Duty tab to navigation for all users
+- [x] Lunch Duty screen: search bar filtering by staff name AND duty/location
+- [x] Roster screen: AM/Lunch/PM sub-tabs within Q1/Q3 and Q2/Q4 quarter tabs
+- [x] Roster screen: 3 sub-tabs (AM / Lunch / PM) within each Q1/Q3 and Q2/Q4 quarter — AM=morning+carpool, Lunch=lunch duties, PM=afternoon duties
