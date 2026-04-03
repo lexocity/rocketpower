@@ -118,6 +118,27 @@ export const appRouter = router({
       return db.getAllUsers();
     }),
 
+    pending: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      return db.getPendingUsers();
+    }),
+
+    approve: protectedProcedure
+      .input(z.object({ userId: z.number(), status: z.enum(["approved", "rejected"]) }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        await db.updateAccountStatus(input.userId, input.status);
+        return { success: true };
+      }),
+
+    setRole: protectedProcedure
+      .input(z.object({ userId: z.number(), role: z.enum(["user", "admin"]) }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        await db.updateUserRole(input.userId, input.role);
+        return { success: true };
+      }),
+
     updatePushToken: protectedProcedure
       .input(z.object({ token: z.string().nullable() }))
       .mutation(async ({ ctx, input }) => {
@@ -181,7 +202,7 @@ export const appRouter = router({
           }
         }
 
-        await db.createNotificationLog({
+        const logId = await db.createNotificationLog({
           sentBy: ctx.user.id,
           title: input.title,
           body: input.body,
@@ -191,6 +212,20 @@ export const appRouter = router({
           failureCount,
         });
 
+        // Record per-recipient delivery status
+        const recipientRows = targets.map((u) => ({
+          userId: u.id,
+          delivered: !!u.expoPushToken,
+        }));
+        // Also include users with no token (so admin can see who wasn't reachable)
+        if (input.recipientType === "all") {
+          const noTokenUsers = allUsers.filter((u) => !u.expoPushToken);
+          for (const u of noTokenUsers) {
+            recipientRows.push({ userId: u.id, delivered: false });
+          }
+        }
+        await db.createNotificationRecipients(logId, recipientRows);
+
         return { successCount, failureCount, totalTargets: tokens.length };
       }),
 
@@ -198,6 +233,20 @@ export const appRouter = router({
       if (ctx.user.role !== "admin") throw new Error("Unauthorized");
       return db.getNotificationHistory(30);
     }),
+
+    recipients: protectedProcedure
+      .input(z.object({ notificationId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        return db.getNotificationRecipients(input.notificationId);
+      }),
+
+    markOpened: protectedProcedure
+      .input(z.object({ notificationId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await db.recordNotificationOpen(input.notificationId, ctx.user.id);
+        return { success: true };
+      }),
   }),
 });
 

@@ -80,3 +80,20 @@
 - [x] Web form for adding/editing coverage assignments
 - [x] Web staff roster management
 - [x] Web send notification panel
+
+## Registration & Account Approval
+- [ ] Add "approved" status field to users table (pending/approved/rejected)
+- [ ] Open registration endpoint (no admin secret required)
+- [ ] Registration screen in the app (name, email, password, confirm password)
+- [ ] Pending approval screen shown after registration
+- [ ] Admin: Staff Management screen with approve/reject pending accounts
+- [ ] Admin: Set user role (staff/admin) from staff management screen
+
+## Notification Read Receipts
+- [ ] notification_receipts table (notificationId, userId, openedAt)
+- [ ] notification_recipients table (notificationId, userId, delivered)
+- [ ] Record recipient list when notification is sent
+- [ ] tRPC route: mark notification as opened (called on app foreground via notification tap)
+- [ ] tRPC route: get receipts for a notification (admin only)
+- [ ] Notify screen: expandable detail view per notification showing per-staff opened/delivered/no-token status
+- [ ] App: listen for notification tap and record read receipt

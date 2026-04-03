@@ -25,6 +25,7 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
   passwordHash: varchar("passwordHash", { length: 128 }),
   passwordSalt: varchar("passwordSalt", { length: 64 }),
+  accountStatus: mysqlEnum("accountStatus", ["pending", "approved", "rejected"]).default("pending").notNull(),
 });
 
 export type User = typeof users.$inferSelect;
@@ -88,3 +89,26 @@ export const notificationLog = mysqlTable("notification_log", {
 
 export type NotificationLog = typeof notificationLog.$inferSelect;
 export type InsertNotificationLog = typeof notificationLog.$inferInsert;
+
+// ─── Notification Recipients (who was targeted per send) ─────────────────────
+export const notificationRecipients = mysqlTable("notification_recipients", {
+  id: int("id").autoincrement().primaryKey(),
+  notificationId: int("notificationId").notNull(),
+  userId: int("userId").notNull(),
+  delivered: boolean("delivered").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type NotificationRecipient = typeof notificationRecipients.$inferSelect;
+export type InsertNotificationRecipient = typeof notificationRecipients.$inferInsert;
+
+// ─── Notification Receipts (who opened/tapped the notification) ───────────────
+export const notificationReceipts = mysqlTable("notification_receipts", {
+  id: int("id").autoincrement().primaryKey(),
+  notificationId: int("notificationId").notNull(),
+  userId: int("userId").notNull(),
+  openedAt: timestamp("openedAt").defaultNow().notNull(),
+});
+
+export type NotificationReceipt = typeof notificationReceipts.$inferSelect;
+export type InsertNotificationReceipt = typeof notificationReceipts.$inferInsert;

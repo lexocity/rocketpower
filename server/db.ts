@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   absences,
@@ -8,6 +8,8 @@ import {
   InsertNotificationLog,
   InsertUser,
   notificationLog,
+  notificationRecipients,
+  notificationReceipts,
   users,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -97,6 +99,18 @@ export async function updateUserRole(userId: number, role: "user" | "admin") {
   const db = await getDb();
   if (!db) return;
   await db.update(users).set({ role }).where(eq(users.id, userId));
+}
+
+export async function updateAccountStatus(userId: number, status: "pending" | "approved" | "rejected") {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(users).set({ accountStatus: status }).where(eq(users.id, userId));
+}
+
+export async function getPendingUsers() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(users).where(eq(users.accountStatus, "pending")).orderBy(users.createdAt);
 }
 
 export async function getUserByOpenId(openId: string) {
@@ -195,4 +209,68 @@ export async function getNotificationHistory(limit = 20) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(notificationLog).orderBy(desc(notificationLog.sentAt)).limit(limit);
+}
+
+// ─── Notification Recipients ──────────────────────────────────────────────────
+export async function createNotificationRecipients(
+  notificationId: number,
+  recipients: Array<{ userId: number; delivered: boolean }>
+) {
+  const db = await getDb();
+  if (!db || recipients.length === 0) return;
+  await db.insert(notificationRecipients).values(
+    recipients.map((r) => ({ notificationId, userId: r.userId, delivered: r.delivered }))
+  );
+}
+
+export async function getNotificationRecipients(notificationId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  // Get recipients joined with user info
+  const recs = await db
+    .select()
+    .from(notificationRecipients)
+    .where(eq(notificationRecipients.notificationId, notificationId));
+
+  if (recs.length === 0) return [];
+
+  const userIds = recs.map((r) => r.userId);
+  const userList = await db.select().from(users).where(inArray(users.id, userIds));
+  const userMap = new Map(userList.map((u) => [u.id, u]));
+
+  // Get receipts (opens) for this notification
+  const receipts = await db
+    .select()
+    .from(notificationReceipts)
+    .where(eq(notificationReceipts.notificationId, notificationId));
+  const openedSet = new Set(receipts.map((r) => r.userId));
+  const openedAtMap = new Map(receipts.map((r) => [r.userId, r.openedAt]));
+
+  return recs.map((r) => ({
+    userId: r.userId,
+    delivered: r.delivered,
+    opened: openedSet.has(r.userId),
+    openedAt: openedAtMap.get(r.userId) ?? null,
+    user: userMap.get(r.userId) ?? null,
+  }));
+}
+
+// ─── Notification Receipts (read tracking) ──────────────────────────────
+export async function recordNotificationOpen(notificationId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  // Only record once per user per notification
+  const existing = await db
+    .select()
+    .from(notificationReceipts)
+    .where(
+      and(
+        eq(notificationReceipts.notificationId, notificationId),
+        eq(notificationReceipts.userId, userId)
+      )
+    )
+    .limit(1);
+  if (existing.length === 0) {
+    await db.insert(notificationReceipts).values({ notificationId, userId });
+  }
 }

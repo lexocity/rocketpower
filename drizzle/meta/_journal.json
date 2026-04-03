@@ -22,6 +22,20 @@
       "when": 1775178891205,
       "tag": "0002_quick_squadron_sinister",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1775179406636,
+      "tag": "0003_short_ronan",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1775179644163,
+      "tag": "0004_first_darkstar",
+      "breakpoints": true
     }
   ]
 }

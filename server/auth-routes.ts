@@ -1,7 +1,6 @@
 /**
  * Custom email/password authentication for RocketPower.
- * Teachers and staff use email + password to log in.
- * Admins can be set via the database or by being the owner account.
+ * Teachers and staff self-register; accounts start as "pending" until an admin approves them.
  */
 import type { Express, Request, Response } from "express";
 import { createHash, randomBytes } from "crypto";
@@ -41,6 +40,16 @@ export function registerAuthRoutes(app: Express) {
         return;
       }
 
+      // Block pending/rejected accounts from logging in
+      if (user.accountStatus === "pending") {
+        res.status(403).json({ error: "pending", message: "Your account is awaiting admin approval. You will be notified once approved." });
+        return;
+      }
+      if (user.accountStatus === "rejected") {
+        res.status(403).json({ error: "rejected", message: "Your account request was not approved. Please contact your school administrator." });
+        return;
+      }
+
       // Update last signed in
       await db.upsertUser({ openId: user.openId, lastSignedIn: new Date() });
 
@@ -61,6 +70,7 @@ export function registerAuthRoutes(app: Express) {
           name: user.name,
           email: user.email,
           role: user.role,
+          accountStatus: user.accountStatus,
           loginMethod: "email",
           lastSignedIn: new Date().toISOString(),
         },
@@ -71,19 +81,17 @@ export function registerAuthRoutes(app: Express) {
     }
   });
 
-  // ─── Register (Admin creates staff accounts) ──────────────────────────────
+  // ─── Self-Service Registration (open, no secret required) ─────────────────
   app.post("/api/auth/register", async (req: Request, res: Response) => {
-    const { email, password, name, adminSecret } = req.body ?? {};
+    const { email, password, name } = req.body ?? {};
 
-    // Require admin secret for registration (set in env or use a default)
-    const secret = process.env.ADMIN_REGISTER_SECRET || "rocketpower-admin-2026";
-    if (adminSecret !== secret) {
-      res.status(403).json({ error: "Invalid admin secret." });
+    if (!email || !password || !name) {
+      res.status(400).json({ error: "Name, email, and password are required." });
       return;
     }
 
-    if (!email || !password || !name) {
-      res.status(400).json({ error: "Email, password, and name are required." });
+    if (password.length < 6) {
+      res.status(400).json({ error: "Password must be at least 6 characters." });
       return;
     }
 
@@ -98,6 +106,7 @@ export function registerAuthRoutes(app: Express) {
       const hash = hashPassword(password, salt);
       const openId = `email:${email.trim().toLowerCase()}`;
 
+      // New accounts start as "pending" — admin must approve before they can log in
       await db.upsertUser({
         openId,
         name: name.trim(),
@@ -106,12 +115,36 @@ export function registerAuthRoutes(app: Express) {
         lastSignedIn: new Date(),
         passwordHash: hash,
         passwordSalt: salt,
+        accountStatus: "pending",
       });
 
-      res.json({ success: true, message: "Account created successfully." });
+      res.json({ success: true, message: "Account request submitted! An admin will review and approve your account shortly." });
     } catch (err) {
       console.error("[Auth] Register error:", err);
       res.status(500).json({ error: "Registration failed. Please try again." });
+    }
+  });
+
+  // ─── Admin: Approve / Reject Account ─────────────────────────────────────
+  app.post("/api/auth/approve", async (req: Request, res: Response) => {
+    try {
+      const requestingUser = await sdk.authenticateRequest(req);
+      if (requestingUser.role !== "admin") {
+        res.status(403).json({ error: "Admin only." });
+        return;
+      }
+
+      const { userId, status } = req.body ?? {};
+      if (!userId || !["approved", "rejected"].includes(status)) {
+        res.status(400).json({ error: "userId and status (approved|rejected) are required." });
+        return;
+      }
+
+      await db.updateAccountStatus(userId, status);
+      res.json({ success: true });
+    } catch (err) {
+      console.error("[Auth] Approve error:", err);
+      res.status(500).json({ error: "Failed to update account status." });
     }
   });
 
