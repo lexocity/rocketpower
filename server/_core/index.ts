@@ -2,6 +2,8 @@ import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
+import path from "path";
+import fs from "fs";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerAuthRoutes } from "../auth-routes";
@@ -69,6 +71,21 @@ async function startServer() {
       createContext,
     }),
   );
+
+  // Serve Expo web static export in production
+  const webDistPath = path.join(process.cwd(), "dist");
+  const webIndexPath = path.join(webDistPath, "index.html");
+  if (fs.existsSync(webDistPath)) {
+    app.use(express.static(webDistPath));
+    // Catch-all: return index.html for client-side routing (must be after API routes)
+    app.get("*", (_req, res) => {
+      if (fs.existsSync(webIndexPath)) {
+        res.sendFile(webIndexPath);
+      } else {
+        res.status(404).send("Not Found");
+      }
+    });
+  }
 
   const preferredPort = parseInt(process.env.PORT || "3000");
   const port = await findAvailablePort(preferredPort);
