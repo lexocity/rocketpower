@@ -29,14 +29,10 @@ async function seedAdminAccount() {
   const name = process.env.SEED_ADMIN_NAME ?? "Admin";
 
   try {
-    const existing = await db.getUserByEmail(email);
-    if (existing) {
-      console.log(`[Seed] Admin account already exists: ${email}`);
-      return;
-    }
     const salt = randomBytes(16).toString("hex");
     const hash = hashPassword(password, salt);
     const openId = `email:${email}`;
+    // Always upsert — ensures password, role, and status are correct even after a redeploy
     await db.upsertUser({
       openId,
       name,
@@ -48,7 +44,7 @@ async function seedAdminAccount() {
       accountStatus: "approved",
       role: "admin",
     });
-    console.log(`[Seed] Admin account created: ${email}`);
+    console.log(`[Seed] Admin account ready: ${email}`);
   } catch (err) {
     console.error("[Seed] Failed to seed admin account:", err);
   }
