@@ -116,7 +116,7 @@ async function startServer() {
   registerAuthRoutes(app);
 
   app.get("/api/health", (_req, res) => {
-    res.json({ ok: true, timestamp: Date.now(), version: "cookiefix2" });
+    res.json({ ok: true, timestamp: Date.now(), version: "cookiefix3" });
   });
 
   // Temporary debug endpoint - remove after fixing
@@ -138,6 +138,37 @@ async function startServer() {
       }
     } catch (err) {
       res.status(500).json({ error: String(err) });
+    }
+  });
+
+  // Debug: trace the full authenticateRequest flow
+  app.get("/api/debug/auth-trace", async (req: Request, res: Response) => {
+    const steps: string[] = [];
+    try {
+      const authHeader = req.headers.authorization || req.headers["Authorization"];
+      steps.push(`authHeader: ${authHeader ? String(authHeader).substring(0, 30) : "none"}`);
+      let token: string | undefined;
+      if (typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+        token = authHeader.slice("Bearer ".length).trim();
+        steps.push(`token from header: ${token.substring(0, 20)}...`);
+      }
+      const rawCookie = req.headers.cookie;
+      steps.push(`raw cookie header: ${rawCookie ? rawCookie.substring(0, 80) : "none"}`);
+      const cookies = req.cookies;
+      steps.push(`parsed cookies: ${JSON.stringify(Object.keys(cookies || {}))}`);
+      const sessionCookie = token || cookies?.["app_session_id"];
+      steps.push(`sessionCookie: ${sessionCookie ? sessionCookie.substring(0, 20) + "..." : "none"}`);
+      const session = await sdk.verifySession(sessionCookie);
+      steps.push(`session: ${JSON.stringify(session)}`);
+      if (!session) {
+        res.json({ steps, result: "FAIL: session is null" });
+        return;
+      }
+      const user = await db.getUserByOpenId(session.openId);
+      steps.push(`user from DB: ${user ? user.name + " (" + user.role + ")" : "NOT FOUND"}`);
+      res.json({ steps, result: user ? "SUCCESS" : "FAIL: user not in DB" });
+    } catch (err) {
+      res.json({ steps, error: String(err) });
     }
   });
 
