@@ -83,12 +83,20 @@ export function getSessionCookieOptions(
 ): Pick<CookieOptions, "domain" | "httpOnly" | "path" | "sameSite" | "secure"> {
   const hostname = req.hostname;
   const domain = getParentDomain(hostname);
+  const secure = isSecureRequest(req);
+
+  // Use SameSite=None only when cross-site cookie sharing is needed (e.g., Manus sandbox
+  // where the frontend is on port 8081 and the API is on port 3000 of a different subdomain).
+  // For same-site deployments (e.g., rocketpower.onrender.com serving both frontend and API),
+  // use SameSite=Lax which is broadly compatible and doesn't require Partitioned.
+  // We detect cross-site need by checking if a parent domain was resolved (subdomain sharing).
+  const sameSite = domain ? "none" : "lax";
 
   return {
     domain,
     httpOnly: true,
     path: "/",
-    sameSite: "none",
-    secure: isSecureRequest(req),
+    sameSite,
+    secure,
   };
 }
