@@ -116,7 +116,22 @@ async function startServer() {
   registerAuthRoutes(app);
 
   app.get("/api/health", (_req, res) => {
-    res.json({ ok: true, timestamp: Date.now(), version: "ca9b96b" });
+    res.json({ ok: true, timestamp: Date.now(), version: "debug1" });
+  });
+
+  // Temporary debug endpoint - remove after fixing
+  app.post("/api/debug/verify-token", async (req: Request, res: Response) => {
+    const { token } = req.body ?? {};
+    if (!token) {
+      res.status(400).json({ error: "token required" });
+      return;
+    }
+    try {
+      const session = await sdk.verifySession(token);
+      res.json({ session, cookieSecretLength: ENV.cookieSecret.length, cookieSecretFirst4: ENV.cookieSecret.substring(0, 4) });
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
+    }
   });
 
   app.use(
