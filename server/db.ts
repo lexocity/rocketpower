@@ -57,6 +57,9 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       if (user.email !== undefined) updateSet.email = user.email ?? null;
       if (user.loginMethod !== undefined) updateSet.loginMethod = user.loginMethod ?? null;
       if (user.role !== undefined) updateSet.role = user.role;
+      if (user.passwordHash !== undefined) updateSet.passwordHash = user.passwordHash ?? null;
+      if (user.passwordSalt !== undefined) updateSet.passwordSalt = user.passwordSalt ?? null;
+      if (user.accountStatus !== undefined) updateSet.accountStatus = user.accountStatus;
       db.update(users).set(updateSet).where(eq(users.openId, user.openId)).run();
     } else {
       const values: InsertUser = {
