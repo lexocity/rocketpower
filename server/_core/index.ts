@@ -116,7 +116,7 @@ async function startServer() {
   registerAuthRoutes(app);
 
   app.get("/api/health", (_req, res) => {
-    res.json({ ok: true, timestamp: Date.now(), version: "debug1" });
+    res.json({ ok: true, timestamp: Date.now(), version: "debug2" });
   });
 
   // Temporary debug endpoint - remove after fixing
@@ -127,8 +127,15 @@ async function startServer() {
       return;
     }
     try {
-      const session = await sdk.verifySession(token);
-      res.json({ session, cookieSecretLength: ENV.cookieSecret.length, cookieSecretFirst4: ENV.cookieSecret.substring(0, 4) });
+      const { jwtVerify } = await import("jose");
+      const secret = process.env.JWT_SECRET ?? "";
+      const secretKey = new TextEncoder().encode(secret);
+      try {
+        const { payload } = await jwtVerify(token, secretKey, { algorithms: ["HS256"] });
+        res.json({ success: true, payload, secretLength: secret.length, secretFirst4: secret.substring(0, 4) });
+      } catch (verifyErr) {
+        res.json({ success: false, error: String(verifyErr), secretLength: secret.length, secretFirst4: secret.substring(0, 4) });
+      }
     } catch (err) {
       res.status(500).json({ error: String(err) });
     }
