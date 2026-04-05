@@ -9,6 +9,8 @@ import { registerOAuthRoutes } from "./oauth";
 import { registerAuthRoutes } from "../auth-routes";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
+import { getDb } from "../db";
+import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -30,6 +32,18 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Run database migrations on startup
+  try {
+    const db = getDb();
+    if (db) {
+      const migrationsFolder = path.join(process.cwd(), "drizzle", "migrations");
+      migrate(db, { migrationsFolder });
+      console.log("[Database] Migrations applied successfully");
+    }
+  } catch (err) {
+    console.error("[Database] Migration error:", err);
+  }
+
   const app = express();
   const server = createServer(app);
 
