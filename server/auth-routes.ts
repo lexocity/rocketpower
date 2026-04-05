@@ -148,6 +148,29 @@ export function registerAuthRoutes(app: Express) {
     }
   });
 
+  // ─── Bootstrap: Promote first admin (requires BOOTSTRAP_SECRET env var) ────
+  app.post("/api/auth/bootstrap-admin", async (req: Request, res: Response) => {
+    const { email, secret } = req.body ?? {};
+    const bootstrapSecret = process.env.BOOTSTRAP_SECRET;
+    if (!bootstrapSecret || secret !== bootstrapSecret) {
+      res.status(403).json({ error: "Invalid or missing bootstrap secret." });
+      return;
+    }
+    try {
+      const user = await db.getUserByEmail(email?.trim().toLowerCase());
+      if (!user) {
+        res.status(404).json({ error: "User not found." });
+        return;
+      }
+      await db.updateAccountStatus(user.id!, "approved");
+      await db.updateUserRole(user.id!, "admin");
+      res.json({ success: true, message: `User ${email} is now an approved admin.` });
+    } catch (err) {
+      console.error("[Auth] Bootstrap error:", err);
+      res.status(500).json({ error: "Bootstrap failed." });
+    }
+  });
+
   // ─── Update Role (Admin only) ─────────────────────────────────────────────
   app.post("/api/auth/set-role", async (req: Request, res: Response) => {
     try {
