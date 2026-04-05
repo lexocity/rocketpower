@@ -69,6 +69,9 @@ export async function upsertUser(user: InsertUser): Promise<void> {
         loginMethod: user.loginMethod ?? null,
         role: user.openId === ENV.ownerOpenId ? "admin" : (user.role ?? "user"),
         lastSignedIn: new Date().toISOString(),
+        passwordHash: user.passwordHash ?? null,
+        passwordSalt: user.passwordSalt ?? null,
+        accountStatus: user.accountStatus ?? "pending",
       };
       db.insert(users).values(values).run();
     }
