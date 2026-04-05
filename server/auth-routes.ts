@@ -148,6 +148,30 @@ export function registerAuthRoutes(app: Express) {
     }
   });
 
+  // ─── Bootstrap: Reset password (requires BOOTSTRAP_SECRET env var) ──────────
+  app.post("/api/auth/bootstrap-reset-password", async (req: Request, res: Response) => {
+    const { email, newPassword, secret } = req.body ?? {};
+    const bootstrapSecret = process.env.BOOTSTRAP_SECRET;
+    if (!bootstrapSecret || secret !== bootstrapSecret) {
+      res.status(403).json({ error: "Invalid or missing bootstrap secret." });
+      return;
+    }
+    try {
+      const user = await db.getUserByEmail(email?.trim().toLowerCase());
+      if (!user) {
+        res.status(404).json({ error: "User not found." });
+        return;
+      }
+      const salt = generateSalt();
+      const hash = hashPassword(newPassword, salt);
+      await db.upsertUser({ openId: user.openId, passwordHash: hash, passwordSalt: salt });
+      res.json({ success: true, message: `Password reset for ${email}.` });
+    } catch (err) {
+      console.error("[Auth] Bootstrap reset error:", err);
+      res.status(500).json({ error: "Password reset failed." });
+    }
+  });
+
   // ─── Bootstrap: Promote first admin (requires BOOTSTRAP_SECRET env var) ────
   app.post("/api/auth/bootstrap-admin", async (req: Request, res: Response) => {
     const { email, secret } = req.body ?? {};
