@@ -4,13 +4,55 @@ import { createServer } from "http";
 import net from "net";
 import path from "path";
 import fs from "fs";
+import { createHash, randomBytes } from "crypto";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerAuthRoutes } from "../auth-routes";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { getDb } from "../db";
+import * as db from "../db";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+
+function hashPassword(password: string, salt: string): string {
+  return createHash("sha256").update(salt + password).digest("hex");
+}
+
+/**
+ * Seeds a default admin account on every startup if it doesn't already exist.
+ * Credentials come from environment variables SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD.
+ * Falls back to hardcoded defaults so the app is always accessible for testing.
+ */
+async function seedAdminAccount() {
+  const email = (process.env.SEED_ADMIN_EMAIL ?? "aalicea@wcpss.net").trim().toLowerCase();
+  const password = process.env.SEED_ADMIN_PASSWORD ?? "Beezer122@";
+  const name = process.env.SEED_ADMIN_NAME ?? "Admin";
+
+  try {
+    const existing = await db.getUserByEmail(email);
+    if (existing) {
+      console.log(`[Seed] Admin account already exists: ${email}`);
+      return;
+    }
+    const salt = randomBytes(16).toString("hex");
+    const hash = hashPassword(password, salt);
+    const openId = `email:${email}`;
+    await db.upsertUser({
+      openId,
+      name,
+      email,
+      loginMethod: "email",
+      lastSignedIn: new Date(),
+      passwordHash: hash,
+      passwordSalt: salt,
+      accountStatus: "approved",
+      role: "admin",
+    });
+    console.log(`[Seed] Admin account created: ${email}`);
+  } catch (err) {
+    console.error("[Seed] Failed to seed admin account:", err);
+  }
+}
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -34,15 +76,18 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   // Run database migrations on startup
   try {
-    const db = getDb();
-    if (db) {
+    const database = getDb();
+    if (database) {
       const migrationsFolder = path.join(process.cwd(), "drizzle", "migrations");
-      migrate(db, { migrationsFolder });
+      migrate(database, { migrationsFolder });
       console.log("[Database] Migrations applied successfully");
     }
   } catch (err) {
     console.error("[Database] Migration error:", err);
   }
+
+  // Seed default admin account (safe to run on every startup)
+  await seedAdminAccount();
 
   const app = express();
   const server = createServer(app);
