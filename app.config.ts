@@ -87,6 +87,12 @@ const config: ExpoConfig = {
   plugins: [
     "expo-router",
     [
+      "expo-asset",
+      {
+        "assets": ["./assets/images/icon.png"]
+      }
+    ],
+    [
       "expo-audio",
       {
         microphonePermission: "Allow $(PRODUCT_NAME) to access your microphone.",
