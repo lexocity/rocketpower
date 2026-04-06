@@ -51,6 +51,8 @@ function LandingPage() {
               backgroundColor: 'transparent',
               // @ts-ignore
               mixBlendMode: isWeb ? 'screen' : undefined,
+              // @ts-ignore
+              filter: isWeb ? 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))' : undefined,
             }}
           >
             <Image
@@ -72,7 +74,7 @@ function LandingPage() {
                 color: "#FFCD00",
                 textAlign: "center",
                 // @ts-ignore
-                fontFamily: isWeb ? "Brannboll, cursive" : undefined,
+                fontFamily: isWeb ? "'Brannboll', 'Pacifico', cursive" : undefined,
                 textShadowColor: "rgba(0, 0, 0, 0.5)",
                 textShadowOffset: { width: 2, height: 2 },
                 textShadowRadius: 4,
