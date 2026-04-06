@@ -116,7 +116,7 @@ async function startServer() {
   registerAuthRoutes(app);
 
   app.get("/api/health", (_req, res) => {
-    res.json({ ok: true, timestamp: Date.now(), version: "finalfix3" });
+    res.json({ ok: true, timestamp: Date.now(), version: "googlefont1" });
   });
 
   // Temporary debug endpoint - remove after fixing
