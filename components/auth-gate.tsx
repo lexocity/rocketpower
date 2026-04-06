@@ -54,45 +54,22 @@ function LandingPage() {
             />
           </View>
 
-          {/* Script Style Title */}
-          <View style={{ alignItems: "center", marginBottom: 8 }}>
+          {/* Brannboll Style Title */}
+          <View style={{ alignItems: "center", marginBottom: 24 }}>
             <Text
               style={{
-                fontSize: 72,
+                fontSize: 84,
                 color: "#FFCD00",
                 textAlign: "center",
                 // @ts-ignore
-                fontFamily: isWeb ? "'Pacifico', cursive" : undefined,
+                fontFamily: isWeb ? "'Brannboll', cursive" : undefined,
                 textShadowColor: "rgba(0, 0, 0, 0.5)",
                 textShadowOffset: { width: 2, height: 2 },
                 textShadowRadius: 4,
+                lineHeight: 100,
               }}
             >
-              Rockets
-            </Text>
-            <View style={{ 
-              backgroundColor: "#FFCD00", 
-              height: 4, 
-              width: 200, 
-              marginTop: -15, 
-              borderRadius: 2,
-              transform: [{ rotate: "-2deg" }]
-            }} />
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: "900",
-                color: "#0D0A12",
-                backgroundColor: "#FFCD00",
-                paddingHorizontal: 8,
-                paddingVertical: 2,
-                marginTop: 4,
-                borderRadius: 4,
-                // @ts-ignore
-                fontFamily: isWeb ? "'Bebas Neue', sans-serif" : undefined,
-              }}
-            >
-              EST. 2017
+              Rocket Power5
             </Text>
           </View>
           
