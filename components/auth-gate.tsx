@@ -56,6 +56,10 @@ function LandingPage() {
               style={{ 
                 width: 120, 
                 height: 120, 
+                // @ts-ignore
+                mixBlendMode: isWeb ? 'screen' : undefined,
+                // @ts-ignore
+                filter: isWeb ? 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))' : undefined,
               }}
               contentFit="contain"
             />
@@ -65,7 +69,7 @@ function LandingPage() {
           <View style={{ alignItems: "center", marginBottom: 24, width: '100%' }}>
             <Text
               style={{
-                fontSize: 96,
+                fontSize: isWeb ? '8vw' : 64,
                 color: "#FFCD00",
                 textAlign: "center",
                 // @ts-ignore
@@ -73,7 +77,7 @@ function LandingPage() {
                 textShadowColor: "rgba(0, 0, 0, 0.5)",
                 textShadowOffset: { width: 2, height: 2 },
                 textShadowRadius: 4,
-                lineHeight: 110,
+                lineHeight: isWeb ? '9vw' : 72,
                 width: '100%',
                 // @ts-ignore
                 whiteSpace: 'nowrap',

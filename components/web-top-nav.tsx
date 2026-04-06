@@ -96,7 +96,15 @@ export function WebTopNav() {
         >
             <Image
               source={require("@/assets/images/icon.png")}
-              style={{ width: 34, height: 34, borderRadius: 8 }}
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 8,
+                // @ts-ignore
+                mixBlendMode: isWeb ? 'screen' : undefined,
+                // @ts-ignore
+                filter: isWeb ? 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))' : undefined,
+              }}
               contentFit="contain"
             />
         </View>
