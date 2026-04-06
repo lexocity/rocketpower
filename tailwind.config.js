@@ -43,6 +43,7 @@ module.exports = {
       },
       fontFamily: {
         varsity: ['"Bebas Neue"', 'system-ui', 'sans-serif'],
+        script: ['"Pacifico"', 'cursive'],
       }
     },
   },

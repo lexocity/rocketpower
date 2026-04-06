@@ -7,7 +7,6 @@ import {
   Text,
   TextInput,
   View,
-  Dimensions,
 } from "react-native";
 import { useAuth } from "@/hooks/use-auth";
 import { getApiBaseUrl } from "@/constants/oauth";
@@ -46,45 +45,81 @@ function LandingPage() {
       <SpaceBackground />
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
         <View style={{ width: "100%", maxWidth: 400, alignItems: "center" }}>
-          {/* Rocket Icon with Shake Animation */}
-          <View className="animate-rocket-shake mb-6">
+          {/* Rocket Icon with Shake Animation - No Box */}
+          <View className="animate-rocket-shake mb-4">
             <Image
               source={require("@/assets/images/icon.png")}
-              style={{ width: 120, height: 120, borderRadius: 30 }}
+              style={{ width: 100, height: 100 }}
+              resizeMode="contain"
             />
           </View>
 
-          {/* Varsity Style Title */}
-          <Text
-            style={{
-              fontSize: 56,
-              fontWeight: "900",
-              color: "#FFCD00",
-              textAlign: "center",
-              letterSpacing: 2,
-              textShadowColor: "rgba(255, 205, 0, 0.5)",
-              textShadowOffset: { width: 0, height: 4 },
-              textShadowRadius: 10,
-              // @ts-ignore
-              fontFamily: isWeb ? "'Bebas Neue', sans-serif" : undefined,
-            }}
-          >
-            ROCKETPOWER
-          </Text>
+          {/* Script Style Title */}
+          <View style={{ alignItems: "center", marginBottom: 8 }}>
+            <Text
+              style={{
+                fontSize: 72,
+                color: "#FFCD00",
+                textAlign: "center",
+                // @ts-ignore
+                fontFamily: isWeb ? "'Pacifico', cursive" : undefined,
+                textShadowColor: "rgba(0, 0, 0, 0.5)",
+                textShadowOffset: { width: 2, height: 2 },
+                textShadowRadius: 4,
+              }}
+            >
+              Rockets
+            </Text>
+            <View style={{ 
+              backgroundColor: "#FFCD00", 
+              height: 4, 
+              width: 200, 
+              marginTop: -15, 
+              borderRadius: 2,
+              transform: [{ rotate: "-2deg" }]
+            }} />
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: "900",
+                color: "#0D0A12",
+                backgroundColor: "#FFCD00",
+                paddingHorizontal: 8,
+                paddingVertical: 2,
+                marginTop: 4,
+                borderRadius: 4,
+                // @ts-ignore
+                fontFamily: isWeb ? "'Bebas Neue', sans-serif" : undefined,
+              }}
+            >
+              EST. 2017
+            </Text>
+          </View>
           
-          <Text
-            style={{
-              fontSize: 16,
-              color: "rgba(255, 255, 255, 0.8)",
-              textAlign: "center",
-              marginBottom: 40,
-              letterSpacing: 4,
-              textTransform: "uppercase",
-              fontWeight: "600",
-            }}
-          >
-            Rogers Lane Elementary
-          </Text>
+          <View style={{ alignItems: "center", marginBottom: 40 }}>
+            <Text
+              style={{
+                fontSize: 18,
+                color: "#FFFFFF",
+                textAlign: "center",
+                fontWeight: "700",
+                letterSpacing: 1,
+              }}
+            >
+              Rogers Lane Elementary
+            </Text>
+            <Text
+              style={{
+                fontSize: 13,
+                color: "rgba(255, 255, 255, 0.6)",
+                textAlign: "center",
+                marginTop: 4,
+                fontStyle: "italic",
+              }}
+            >
+              Substitute Coverage & Staff Duties
+            </Text>
+          </View>
 
           {view === "pending" ? (
             <PendingCard onBack={() => setView("login")} />
