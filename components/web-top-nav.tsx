@@ -2,7 +2,12 @@
  * WebTopNav — beautiful full-width top navigation bar for web only.
  * Deep purple gradient header with gold accents, rocket logo top-left.
  */
-import { Image, Pressable, Text, View } from "react-native";
+import {
+  Pressable,
+  Text,
+  View,
+} from "react-native";
+import { Image } from "expo-image";
 import { usePathname, useRouter } from "expo-router";
 import { trpc } from "@/lib/trpc";
 
@@ -89,11 +94,11 @@ export function WebTopNav() {
             boxShadow: "0 0 12px rgba(255,205,0,0.25)",
           }}
         >
-          <Image
-            source={require("@/assets/images/icon.png")}
-            style={{ width: 34, height: 34, borderRadius: 8 }}
-            resizeMode="contain"
-          />
+            <Image
+              source={require("@/assets/images/icon.png")}
+              style={{ width: 34, height: 34, borderRadius: 8 }}
+              contentFit="contain"
+            />
         </View>
 
         {/* App name + school name */}

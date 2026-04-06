@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import {
   ActivityIndicator,
-  Image,
   Platform,
   Pressable,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import { useAuth } from "@/hooks/use-auth";
 import { getApiBaseUrl } from "@/constants/oauth";
 
@@ -56,9 +56,8 @@ function LandingPage() {
               style={{ 
                 width: 120, 
                 height: 120, 
-                backgroundColor: 'transparent',
               }}
-              resizeMode="contain"
+              contentFit="contain"
             />
           </View>
 
