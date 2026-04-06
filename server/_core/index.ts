@@ -116,8 +116,7 @@ async function startServer() {
   registerAuthRoutes(app);
 
   app.get("/api/health", (_req, res) => {
-    res.json({ ok: true, timestamp: Date.now(), version: "nuclearfix9" });
-  });
+    res.json({ ok: true, timestamp: Date.now(), version: "nuclearfix13" });  });
 
   // Temporary debug endpoint - remove after fixing
   app.post("/api/debug/verify-token", async (req: Request, res: Response) => {
