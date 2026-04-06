@@ -69,7 +69,7 @@ function LandingPage() {
           <View style={{ alignItems: "center", marginBottom: 24, width: '100%' }}>
             <Text
               style={{
-                fontSize: isWeb ? '8vw' : 64,
+                fontSize: 96,
                 color: "#FFCD00",
                 textAlign: "center",
                 // @ts-ignore
@@ -77,7 +77,7 @@ function LandingPage() {
                 textShadowColor: "rgba(0, 0, 0, 0.5)",
                 textShadowOffset: { width: 2, height: 2 },
                 textShadowRadius: 4,
-                lineHeight: isWeb ? '9vw' : 72,
+                lineHeight: 110,
                 width: '100%',
                 // @ts-ignore
                 whiteSpace: 'nowrap',
