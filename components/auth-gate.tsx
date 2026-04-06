@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Platform,
   Pressable,
+  Dimensions,
   Text,
   TextInput,
   View,
@@ -38,6 +39,24 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
 function LandingPage() {
   const [view, setView] = useState<AuthView>("login");
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
+
+  useEffect(() => {
+    const updateScreenWidth = () => {
+      setScreenWidth(Dimensions.get("window").width);
+    };
+    Dimensions.addEventListener("change", updateScreenWidth);
+    return () => {
+      Dimensions.removeEventListener("change", updateScreenWidth);
+    };
+  }, []);
+
+  const getResponsiveFontSize = (baseSize: number, scaleFactor: number) => {
+    const minWidth = 320; // Minimum screen width for scaling
+    const maxWidth = 800; // Maximum screen width for scaling
+    const clampedWidth = Math.max(minWidth, Math.min(screenWidth, maxWidth));
+    return baseSize + (clampedWidth - minWidth) * scaleFactor;
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#0D0A12" }}>
@@ -69,7 +88,7 @@ function LandingPage() {
           <View style={{ alignItems: "center", marginBottom: 24, width: '100%' }}>
             <Text
               style={{
-                fontSize: 96,
+                fontSize: getResponsiveFontSize(48, 0.06),
                 color: "#FFCD00",
                 textAlign: "center",
                 // @ts-ignore
@@ -77,7 +96,7 @@ function LandingPage() {
                 textShadowColor: "rgba(0, 0, 0, 0.5)",
                 textShadowOffset: { width: 2, height: 2 },
                 textShadowRadius: 4,
-                lineHeight: 110,
+                lineHeight: getResponsiveFontSize(56, 0.07),
                 width: '100%',
                 // @ts-ignore
                 whiteSpace: 'nowrap',
