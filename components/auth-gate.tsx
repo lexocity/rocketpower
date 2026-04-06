@@ -44,7 +44,7 @@ function LandingPage() {
     <View style={{ flex: 1, backgroundColor: "#0D0A12" }}>
       <SpaceBackground />
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <View style={{ width: "100%", maxWidth: 600, alignItems: "center" }}>
+        <View style={{ width: "100%", maxWidth: 800, alignItems: "center" }}>
           {/* Rocket Icon with Shake Animation - No Box, Transparent */}
           <View className="animate-rocket-shake mb-4" style={{ backgroundColor: 'transparent' }}>
             <Image
@@ -54,10 +54,9 @@ function LandingPage() {
             />
           </View>
 
-          {/* Brannboll Style Title - Single Line */}
+          {/* Brannboll Style Title - No Truncation */}
           <View style={{ alignItems: "center", marginBottom: 24, width: '100%' }}>
             <Text
-              numberOfLines={1}
               style={{
                 fontSize: 96,
                 color: "#FFCD00",
@@ -69,6 +68,8 @@ function LandingPage() {
                 textShadowRadius: 4,
                 lineHeight: 110,
                 width: '100%',
+                // @ts-ignore
+                whiteSpace: 'nowrap',
               }}
             >
               Rocket Power5
