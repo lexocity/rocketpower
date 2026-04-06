@@ -48,16 +48,17 @@ function buildUserResponse(
         name?: string | null;
         email?: string | null;
         loginMethod?: string | null;
-        lastSignedIn?: Date | null;
+        lastSignedIn?: Date | string | null;
       },
 ) {
+  const lastSignedIn = user?.lastSignedIn ? new Date(user.lastSignedIn) : new Date();
   return {
     id: (user as any)?.id ?? null,
     openId: user?.openId ?? null,
     name: user?.name ?? null,
     email: user?.email ?? null,
     loginMethod: user?.loginMethod ?? null,
-    lastSignedIn: (user?.lastSignedIn ?? new Date()).toISOString(),
+    lastSignedIn: lastSignedIn.toISOString(),
   };
 }
 
