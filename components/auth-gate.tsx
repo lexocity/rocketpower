@@ -49,10 +49,6 @@ function LandingPage() {
             className="animate-rocket-shake mb-4" 
             style={{ 
               backgroundColor: 'transparent',
-              // @ts-ignore
-              mixBlendMode: isWeb ? 'screen' : undefined,
-              // @ts-ignore
-              filter: isWeb ? 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))' : undefined,
             }}
           >
             <Image
