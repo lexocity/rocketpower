@@ -44,21 +44,22 @@ function LandingPage() {
     <View style={{ flex: 1, backgroundColor: "#0D0A12" }}>
       <SpaceBackground />
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <View style={{ width: "100%", maxWidth: 400, alignItems: "center" }}>
-          {/* Rocket Icon with Shake Animation - No Box */}
-          <View className="animate-rocket-shake mb-4">
+        <View style={{ width: "100%", maxWidth: 600, alignItems: "center" }}>
+          {/* Rocket Icon with Shake Animation - No Box, Transparent */}
+          <View className="animate-rocket-shake mb-4" style={{ backgroundColor: 'transparent' }}>
             <Image
               source={require("@/assets/images/icon.png")}
-              style={{ width: 100, height: 100 }}
+              style={{ width: 120, height: 120, backgroundColor: 'transparent' }}
               resizeMode="contain"
             />
           </View>
 
-          {/* Brannboll Style Title */}
-          <View style={{ alignItems: "center", marginBottom: 24 }}>
+          {/* Brannboll Style Title - Single Line */}
+          <View style={{ alignItems: "center", marginBottom: 24, width: '100%' }}>
             <Text
+              numberOfLines={1}
               style={{
-                fontSize: 84,
+                fontSize: 96,
                 color: "#FFCD00",
                 textAlign: "center",
                 // @ts-ignore
@@ -66,7 +67,8 @@ function LandingPage() {
                 textShadowColor: "rgba(0, 0, 0, 0.5)",
                 textShadowOffset: { width: 2, height: 2 },
                 textShadowRadius: 4,
-                lineHeight: 100,
+                lineHeight: 110,
+                width: '100%',
               }}
             >
               Rocket Power5
@@ -76,7 +78,7 @@ function LandingPage() {
           <View style={{ alignItems: "center", marginBottom: 40 }}>
             <Text
               style={{
-                fontSize: 18,
+                fontSize: 20,
                 color: "#FFFFFF",
                 textAlign: "center",
                 fontWeight: "700",
@@ -87,7 +89,7 @@ function LandingPage() {
             </Text>
             <Text
               style={{
-                fontSize: 13,
+                fontSize: 14,
                 color: "rgba(255, 255, 255, 0.6)",
                 textAlign: "center",
                 marginTop: 4,
@@ -98,13 +100,15 @@ function LandingPage() {
             </Text>
           </View>
 
-          {view === "pending" ? (
-            <PendingCard onBack={() => setView("login")} />
-          ) : view === "register" ? (
-            <RegisterCard onBack={() => setView("login")} onPending={() => setView("pending")} />
-          ) : (
-            <LoginCard onRegister={() => setView("register")} onPending={() => setView("pending")} />
-          )}
+          <View style={{ width: '100%', maxWidth: 400 }}>
+            {view === "pending" ? (
+              <PendingCard onBack={() => setView("login")} />
+            ) : view === "register" ? (
+              <RegisterCard onBack={() => setView("login")} onPending={() => setView("pending")} />
+            ) : (
+              <LoginCard onRegister={() => setView("register")} onPending={() => setView("pending")} />
+            )}
+          </View>
         </View>
       </View>
     </View>
