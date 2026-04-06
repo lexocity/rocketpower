@@ -46,7 +46,7 @@ function LandingPage() {
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
         <View style={{ width: "100%", maxWidth: 800, alignItems: "center" }}>
           {/* Rocket Icon with Shake Animation - No Box, Transparent */}
-          <View className="animate-rocket-shake mb-4" style={{ backgroundColor: 'transparent' }}>
+          <View className="animate-rocket-shake mb-4 rocket-icon-container" style={{ backgroundColor: 'transparent' }}>
             <Image
               source={require("@/assets/images/icon.png")}
               style={{ width: 120, height: 120, backgroundColor: 'transparent' }}

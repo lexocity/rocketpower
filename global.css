@@ -2,7 +2,7 @@
 
 @font-face {
   font-family: 'Brannboll';
-  src: url('fonts/Brannboll.ttf') format('truetype');
+  src: url('/Brannboll.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
@@ -10,3 +10,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Force transparency for the rocket icon box */
+.rocket-icon-container, .rocket-icon-container > div, .rocket-icon-container img {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
