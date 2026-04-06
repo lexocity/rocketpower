@@ -138,40 +138,64 @@ function SpaceBackground() {
   if (!isWeb) return null;
 
   return (
-    <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflow: "hidden" }}>
-      {/* Nebula Glow */}
+    <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflow: "hidden", backgroundColor: "#050308" }}>
+      {/* Deep Space Gradient */}
+      <View 
+        style={{
+          position: "absolute",
+          top: 0, left: 0, right: 0, bottom: 0,
+          // @ts-ignore
+          backgroundImage: "linear-gradient(180deg, #050308 0%, #1a0a2e 50%, #050308 100%)",
+        }}
+      />
+
+      {/* Nebula Glows */}
       <View 
         className="animate-nebula-glow"
         style={{
           position: "absolute",
-          width: "150%",
-          height: "150%",
-          top: "-25%",
-          left: "-25%",
+          width: "120%",
+          height: "120%",
+          top: "-10%",
+          left: "-10%",
           // @ts-ignore
-          backgroundImage: "radial-gradient(circle at center, rgba(73, 14, 103, 0.3) 0%, transparent 70%)",
+          backgroundImage: "radial-gradient(circle at 30% 30%, rgba(73, 14, 103, 0.4) 0%, transparent 60%), radial-gradient(circle at 70% 70%, rgba(45, 8, 64, 0.4) 0%, transparent 60%)",
         }}
       />
       
-      {/* Twinkling Stars */}
-      {[...Array(50)].map((_, i) => (
-        <View
-          key={i}
-          className="animate-twinkle"
-          style={{
-            position: "absolute",
-            width: (i % 4 === 0) ? 4 : 2,
-            height: (i % 4 === 0) ? 4 : 2,
-            borderRadius: 2,
-            backgroundColor: (i % 5 === 0) ? "#FFCD00" : "#FFFFFF",
-            top: `${Math.random() * 100}%`,
-            left: `${Math.random() * 100}%`,
-            // @ts-ignore
-            animationDelay: `${Math.random() * 5}s`,
-            opacity: 0.2 + Math.random() * 0.8,
-          }}
-        />
-      ))}
+      {/* Twinkling Star-Shaped Elements */}
+      {[...Array(60)].map((_, i) => {
+        const size = (i % 6 === 0) ? 6 : (i % 3 === 0) ? 4 : 2;
+        const isStar = i % 5 === 0;
+        return (
+          <View
+            key={i}
+            className="animate-twinkle"
+            style={{
+              position: "absolute",
+              width: size,
+              height: size,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              // @ts-ignore
+              animationDelay: `${Math.random() * 5}s`,
+              opacity: 0.3 + Math.random() * 0.7,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {isStar ? (
+              <View style={{ position: 'relative', width: size, height: size }}>
+                <View style={{ position: 'absolute', width: size, height: 1, backgroundColor: '#FFCD00', top: size/2 }} />
+                <View style={{ position: 'absolute', width: 1, height: size, backgroundColor: '#FFCD00', left: size/2 }} />
+                <View style={{ position: 'absolute', width: size*0.7, height: size*0.7, backgroundColor: '#FFCD00', borderRadius: size, opacity: 0.5, top: size*0.15, left: size*0.15 }} />
+              </View>
+            ) : (
+              <View style={{ width: size, height: size, borderRadius: size, backgroundColor: '#FFFFFF' }} />
+            )}
+          </View>
+        );
+      })}
     </View>
   );
 }
