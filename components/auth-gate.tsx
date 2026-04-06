@@ -54,7 +54,7 @@ function LandingPage() {
             />
           </View>
 
-          {/* Brannboll Style Title - No Truncation */}
+          {/* Script Style Title - No Truncation */}
           <View style={{ alignItems: "center", marginBottom: 24, width: '100%' }}>
             <Text
               style={{
@@ -62,7 +62,7 @@ function LandingPage() {
                 color: "#FFCD00",
                 textAlign: "center",
                 // @ts-ignore
-                fontFamily: isWeb ? "'Brannboll', cursive" : undefined,
+                fontFamily: isWeb ? "'Yellowtail', cursive" : undefined,
                 textShadowColor: "rgba(0, 0, 0, 0.5)",
                 textShadowOffset: { width: 2, height: 2 },
                 textShadowRadius: 4,
