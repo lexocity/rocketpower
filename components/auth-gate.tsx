@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { useAuth } from "@/hooks/use-auth";
 import { getApiBaseUrl } from "@/constants/oauth";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 
 type AuthView = "login" | "register" | "pending";
 
@@ -30,11 +29,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isAuthenticated) {
-    return <LandingPage />;
+  if (isAuthenticated) {
+    return <>{children}</>;
   }
 
-  return <>{children}</>;
+  return <LandingPage />;
 }
 
 function LandingPage() {
@@ -45,8 +44,8 @@ function LandingPage() {
       <SpaceBackground />
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
         <View style={{ width: "100%", maxWidth: 800, alignItems: "center" }}>
-          {/* Rocket Icon with Shake Animation - No Box, Transparent */}
-          <View className="animate-rocket-shake mb-4 rocket-icon-container" style={{ backgroundColor: 'transparent' }}>
+          {/* Rocket Icon - No Box, Transparent */}
+          <View className="animate-rocket-shake mb-4" style={{ backgroundColor: 'transparent' }}>
             <Image
               source={require("@/assets/images/icon.png")}
               style={{ width: 120, height: 120, backgroundColor: 'transparent' }}
@@ -54,7 +53,7 @@ function LandingPage() {
             />
           </View>
 
-          {/* Script Style Title - No Truncation */}
+          {/* Brannboll Font Title - No Truncation */}
           <View style={{ alignItems: "center", marginBottom: 24, width: '100%' }}>
             <Text
               style={{
@@ -62,7 +61,7 @@ function LandingPage() {
                 color: "#FFCD00",
                 textAlign: "center",
                 // @ts-ignore
-                fontFamily: isWeb ? "'Yellowtail', cursive" : undefined,
+                fontFamily: isWeb ? "Brannboll, cursive" : undefined,
                 textShadowColor: "rgba(0, 0, 0, 0.5)",
                 textShadowOffset: { width: 2, height: 2 },
                 textShadowRadius: 4,
@@ -335,7 +334,7 @@ function RegisterCard({ onBack, onPending }: { onBack: () => void; onPending: ()
     paddingVertical: 14,
     fontSize: 16,
     color: "#FFFFFF",
-    marginBottom: 12,
+    marginBottom: 16,
     width: "100%",
     // @ts-ignore
     outlineStyle: "none",
@@ -343,10 +342,14 @@ function RegisterCard({ onBack, onPending }: { onBack: () => void; onPending: ()
 
   return (
     <View style={{ width: "100%" }}>
-      <Pressable onPress={onBack} style={{ marginBottom: 20, flexDirection: "row", alignItems: "center" }}>
-        <IconSymbol name="chevron.left" size={16} color="#FFCD00" />
-        <Text style={{ color: "#FFCD00", marginLeft: 4, fontWeight: "600" }}>Back</Text>
+      <Pressable onPress={onBack} style={{ flexDirection: "row", alignItems: "center", marginBottom: 24 }}>
+        <Text style={{ color: "#FFCD00", fontSize: 14, fontWeight: "600" }}>← Back to Login</Text>
       </Pressable>
+
+      <Text style={{ color: "#FFFFFF", fontSize: 24, fontWeight: "800", marginBottom: 8 }}>Request Access</Text>
+      <Text style={{ color: "rgba(255, 255, 255, 0.6)", fontSize: 14, marginBottom: 24 }}>
+        Fill out the form below to request an account. An administrator will review your request.
+      </Text>
 
       {error ? (
         <View style={{ backgroundColor: "rgba(239, 68, 68, 0.2)", borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: "rgba(239, 68, 68, 0.4)" }}>
@@ -354,9 +357,32 @@ function RegisterCard({ onBack, onPending }: { onBack: () => void; onPending: ()
         </View>
       ) : null}
 
-      <TextInput value={name} onChangeText={setName} placeholder="Full Name" placeholderTextColor="rgba(255, 255, 255, 0.4)" style={inputStyle} />
-      <TextInput value={email} onChangeText={setEmail} placeholder="Email" placeholderTextColor="rgba(255, 255, 255, 0.4)" keyboardType="email-address" style={inputStyle} />
-      <TextInput value={password} onChangeText={setPassword} placeholder="Password" placeholderTextColor="rgba(255, 255, 255, 0.4)" secureTextEntry style={inputStyle} />
+      <TextInput
+        value={name}
+        onChangeText={setName}
+        placeholder="Full Name"
+        placeholderTextColor="rgba(255, 255, 255, 0.4)"
+        style={inputStyle}
+      />
+
+      <TextInput
+        value={email}
+        onChangeText={setEmail}
+        placeholder="School Email"
+        placeholderTextColor="rgba(255, 255, 255, 0.4)"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        style={inputStyle}
+      />
+
+      <TextInput
+        value={password}
+        onChangeText={setPassword}
+        placeholder="Password"
+        placeholderTextColor="rgba(255, 255, 255, 0.4)"
+        secureTextEntry
+        style={inputStyle}
+      />
 
       <Pressable
         onPress={handleRegister}
@@ -373,7 +399,7 @@ function RegisterCard({ onBack, onPending }: { onBack: () => void; onPending: ()
         {isLoading ? (
           <ActivityIndicator color="#490E67" size="small" />
         ) : (
-          <Text style={{ color: "#490E67", fontWeight: "900", fontSize: 18 }}>SUBMIT REQUEST</Text>
+          <Text style={{ color: "#490E67", fontWeight: "900", fontSize: 18, letterSpacing: 1 }}>SUBMIT REQUEST</Text>
         )}
       </Pressable>
     </View>
@@ -382,24 +408,25 @@ function RegisterCard({ onBack, onPending }: { onBack: () => void; onPending: ()
 
 function PendingCard({ onBack }: { onBack: () => void }) {
   return (
-    <View style={{ alignItems: "center", width: "100%" }}>
-      <Text style={{ fontSize: 64, marginBottom: 24 }}>⏳</Text>
-      <Text style={{ fontSize: 24, fontWeight: "900", color: "#FFCD00", marginBottom: 12, textAlign: "center" }}>REQUEST SENT!</Text>
-      <Text style={{ fontSize: 16, color: "rgba(255, 255, 255, 0.7)", textAlign: "center", lineHeight: 24, marginBottom: 32 }}>
-        Your account request is awaiting admin approval. You'll be able to sign in once approved.
+    <View style={{ width: "100%", alignItems: "center", backgroundColor: "rgba(255, 255, 255, 0.05)", borderRadius: 24, padding: 32, borderWidth: 1, borderColor: "rgba(255, 255, 255, 0.1)" }}>
+      <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "rgba(255, 205, 0, 0.1)", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
+        <Text style={{ fontSize: 32 }}>⏳</Text>
+      </View>
+      <Text style={{ color: "#FFFFFF", fontSize: 24, fontWeight: "800", marginBottom: 12, textAlign: "center" }}>Request Pending</Text>
+      <Text style={{ color: "rgba(255, 255, 255, 0.6)", fontSize: 16, textAlign: "center", lineHeight: 24, marginBottom: 32 }}>
+        Your account request has been submitted. An administrator will review it shortly. You'll be able to log in once approved.
       </Text>
       <Pressable
         onPress={onBack}
         style={({ pressed }) => ({
-          borderWidth: 2,
-          borderColor: "#FFCD00",
+          backgroundColor: "rgba(255, 255, 255, 0.1)",
           borderRadius: 25,
           paddingVertical: 14,
-          paddingHorizontal: 40,
-          opacity: pressed ? 0.7 : 1,
+          paddingHorizontal: 32,
+          opacity: pressed ? 0.8 : 1,
         })}
       >
-        <Text style={{ color: "#FFCD00", fontWeight: "800", fontSize: 16 }}>BACK TO LOGIN</Text>
+        <Text style={{ color: "#FFFFFF", fontWeight: "700", fontSize: 16 }}>Back to Login</Text>
       </Pressable>
     </View>
   );
