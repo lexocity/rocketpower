@@ -44,16 +44,27 @@ function LandingPage() {
       <SpaceBackground />
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
         <View style={{ width: "100%", maxWidth: 800, alignItems: "center" }}>
-          {/* Rocket Icon - No Box, Transparent */}
-          <View className="animate-rocket-shake mb-4" style={{ backgroundColor: 'transparent' }}>
+          {/* Rocket Icon - Forced Transparency */}
+          <View 
+            className="animate-rocket-shake mb-4" 
+            style={{ 
+              backgroundColor: 'transparent',
+              // @ts-ignore
+              mixBlendMode: isWeb ? 'screen' : undefined,
+            }}
+          >
             <Image
               source={require("@/assets/images/icon.png")}
-              style={{ width: 120, height: 120, backgroundColor: 'transparent' }}
+              style={{ 
+                width: 120, 
+                height: 120, 
+                backgroundColor: 'transparent',
+              }}
               resizeMode="contain"
             />
           </View>
 
-          {/* Brannboll Font Title - No Truncation */}
+          {/* Brannboll Font Title - Forced Single Line & No Truncation */}
           <View style={{ alignItems: "center", marginBottom: 24, width: '100%' }}>
             <Text
               style={{
@@ -69,6 +80,10 @@ function LandingPage() {
                 width: '100%',
                 // @ts-ignore
                 whiteSpace: 'nowrap',
+                // @ts-ignore
+                overflow: 'visible',
+                // @ts-ignore
+                textOverflow: 'clip',
               }}
             >
               Rocket Power5
